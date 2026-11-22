@@ -605,4 +605,33 @@
             document.body.appendChild(dlAnchor);
             dlAnchor.click();
             dlAnchor.remove();
-   
+   }
+
+function importData(e) {
+    const file = e.target.files.item(0);
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = function(event) {
+        try {
+            ordersData = JSON.parse(event.target.result);
+            localStorage.setItem('bakeMapOrders', JSON.stringify(ordersData));
+            renderCalendar();
+            alert("Záloha byla úspěšně obnovena!");
+            closeModal('backupModal');
+        } catch (err) {
+            alert("Chyba při nahrávání souboru.");
+        }
+    };
+    reader.readAsText(file);
+}
+
+function escapeHtml(text) {
+    const div = document.createElement('div');
+    div.textContent = text;
+    return div.innerHTML;
+}
+
+renderCalendar();
+</script>
+</body>
+</html>
