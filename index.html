@@ -1,392 +1,551 @@
 <!DOCTYPE html>
 <html lang="cs">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>BakeMap – Plánovač zakázek</title>
-    <style>
-        :root {
-            --bg-color: #f4f6f9;
-            --card-bg: #ffffff;
-            --primary: #d97706;
-            --primary-light: #fef3c7;
-            --text-main: #1f2937;
-            --text-muted: #6b7280;
-            --border: #e5e7eb;
-            --accent-red: #ef4444;
-            --accent-green: #10b981;
-        }
-        * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
-        body { background-color: var(--bg-color); color: var(--text-main); display: flex; flex-direction: column; align-items: center; min-height: 100vh; padding: 16px; }
-        header { width: 100%; max-width: 500px; display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; }
-        .icon-btn { background: var(--card-bg); border: 1px solid var(--border); border-radius: 12px; width: 42px; height: 42px; display: flex; align-items: center; justify-content: center; font-size: 20px; cursor: pointer; }
-        .title-box { text-align: center; }
-        .title-box h1 { color: var(--primary); font-size: 24px; font-weight: 800; }
-        .title-box p { color: var(--text-muted); font-size: 13px; }
-        .calendar-card { background: var(--card-bg); width: 100%; max-width: 500px; border-radius: 20px; padding: 18px; box-shadow: 0 4px 15px rgba(0,0,0,0.05); }
-        .month-nav { display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; }
-        .month-nav h2 { font-size: 19px; font-weight: 700; }
-        .nav-arrows button { background: var(--bg-color); border: none; border-radius: 10px; width: 36px; height: 36px; font-size: 16px; font-weight: bold; cursor: pointer; margin-left: 6px; }
-        .weekdays { display: grid; grid-template-columns: repeat(7, 1fr); text-align: center; font-size: 12px; font-weight: 700; color: var(--text-muted); margin-bottom: 10px; }
-        .days-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 6px; }
-        .day-cell { aspect-ratio: 1 / 1.15; border-radius: 12px; border: 1px solid transparent; display: flex; flex-direction: column; align-items: center; justify-content: space-between; padding: 6px 2px; cursor: pointer; background: #fafafa; }
-        .day-cell:hover { background: var(--primary-light); }
-        .day-cell.other-month { opacity: 0.35; }
-        .day-cell.today { border: 2px solid var(--primary); background: #fffbeb; }
-        .day-num { font-size: 15px; font-weight: 700; }
-        .order-badge { background: var(--primary); color: white; font-size: 10px; font-weight: 700; padding: 2px 4px; border-radius: 6px; width: 90%; text-align: center; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-        .stats-btn { width: 100%; max-width: 500px; margin-top: 14px; background: var(--card-bg); border: 1px solid var(--border); color: var(--text-main); padding: 14px; border-radius: 16px; font-size: 15px; font-weight: 700; cursor: pointer; box-shadow: 0 2px 8px rgba(0,0,0,0.04); display: flex; align-items: center; justify-content: center; gap: 8px; }
-        .stats-btn:hover { background: var(--primary-light); border-color: var(--primary); }
-        .stat-box { background: var(--bg-color); border-radius: 14px; padding: 16px; margin-bottom: 12px; display: flex; justify-content: space-between; align-items: center; }
-        .stat-label { font-size: 14px; color: var(--text-muted); font-weight: 600; }
-        .stat-sub { font-size: 12px; color: var(--text-muted); margin-top: 2px; }
-        .stat-val { font-size: 20px; font-weight: 800; color: var(--accent-green); }
-        .modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.5); display: none; align-items: flex-end; justify-content: center; z-index: 100; }
-        .modal-overlay.active { display: flex; }
-        .modal-content { background: var(--card-bg); width: 100%; max-width: 500px; max-height: 90vh; border-radius: 24px 24px 0 0; padding: 20px; overflow-y: auto; }
-        .modal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; padding-bottom: 10px; border-bottom: 1px solid var(--border); }
-        .close-btn { background: var(--bg-color); border: none; border-radius: 50%; width: 32px; height: 32px; font-size: 18px; cursor: pointer; }
-        .order-item { background: var(--bg-color); border-radius: 14px; padding: 14px; margin-bottom: 12px; border-left: 4px solid var(--primary); }
-        .order-top { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 6px; }
-        .order-client { font-weight: 700; font-size: 16px; }
-        .order-product { color: var(--primary); font-weight: 600; font-size: 14px; margin-bottom: 4px; }
-        .order-price { color: var(--accent-green); font-weight: 700; font-size: 14px; margin-bottom: 6px; }
-        .order-notes { font-size: 13px; color: var(--text-main); white-space: pre-line; margin-bottom: 8px; }
-        .order-img { width: 100%; max-height: 220px; object-fit: cover; border-radius: 10px; margin-top: 6px; cursor: pointer; }
-        .delete-btn { background: #fee2e2; color: var(--accent-red); border: none; padding: 4px 10px; border-radius: 8px; font-size: 12px; font-weight: 600; cursor: pointer; }
-        .form-group { margin-bottom: 12px; }
-        .form-group label { display: block; font-size: 13px; font-weight: 600; margin-bottom: 4px; color: var(--text-muted); }
-        .form-group input, .form-group textarea { width: 100%; padding: 10px 12px; border: 1px solid var(--border); border-radius: 10px; font-size: 14px; }
-        .btn-primary { background: var(--primary); color: white; border: none; width: 100%; padding: 12px; border-radius: 12px; font-size: 15px; font-weight: 700; cursor: pointer; margin-top: 6px; }
-        .section-divider { margin: 18px 0 12px; font-size: 15px; font-weight: 700; }
-        .img-viewer { position: fixed; inset: 0; background: rgba(0,0,0,0.9); display: none; align-items: center; justify-content: center; z-index: 200; padding: 20px; }
-        .img-viewer.active { display: flex; }
-        .img-viewer img { max-width: 100%; max-height: 100%; border-radius: 12px; }
-    </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>BakeMap – Plánovač zakázek</title>
+<style>
+:root {
+    --bg: #fdf2f0;
+    --card: rgba(255, 255, 255, 0.88);
+    --pri: #c2410c;
+    --pri-l: #ffedd5;
+    --txt: #291d18;
+    --mut: #6b5349;
+    --brd: rgba(231, 211, 204, 0.85);
+    --red: #dc2626;
+    --grn: #059669;
+}
+* { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
+body {
+    background-color: var(--bg);
+    color: var(--txt);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    min-height: 100vh;
+    padding: 16px;
+    position: relative;
+}
+#bgLayer {
+    position: fixed;
+    inset: 0;
+    background-size: cover;
+    background-position: center;
+    opacity: 0.24;
+    z-index: -2;
+    transition: background-image 0.6s ease-in-out;
+}
+#bgTint {
+    position: fixed;
+    inset: 0;
+    background: linear-gradient(160deg, rgba(255, 237, 232, 0.65) 0%, rgba(253, 224, 217, 0.72) 50%, rgba(251, 207, 216, 0.68) 100%);
+    z-index: -1;
+}
+header {
+    width: 100%;
+    max-width: 500px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 16px;
+}
+.icon-btn {
+    background: var(--card);
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+    border: 1px solid var(--brd);
+    border-radius: 14px;
+    width: 44px;
+    height: 44px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 20px;
+    cursor: pointer;
+    box-shadow: 0 4px 12px rgba(136, 65, 48, 0.08);
+}
+.title-box { text-align: center; }
+.title-box h1 { color: var(--pri); font-size: 26px; font-weight: 800; letter-spacing: -0.5px; text-shadow: 0 1px 2px rgba(255,255,255,0.8); }
+.title-box p { color: var(--mut); font-size: 13px; font-weight: 600; }
+.calendar-card {
+    background: var(--card);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    width: 100%;
+    max-width: 500px;
+    border-radius: 24px;
+    padding: 18px;
+    border: 1px solid rgba(255, 255, 255, 0.9);
+    box-shadow: 0 10px 30px rgba(136, 65, 48, 0.12);
+}
+.month-nav { display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; }
+.month-nav h2 { font-size: 20px; font-weight: 800; color: var(--txt); }
+.nav-arrows button {
+    background: rgba(255, 241, 238, 0.9);
+    border: 1px solid var(--brd);
+    border-radius: 12px;
+    width: 38px;
+    height: 38px;
+    font-size: 18px;
+    font-weight: 700;
+    color: var(--pri);
+    cursor: pointer;
+    margin-left: 6px;
+}
+.weekdays { display: grid; grid-template-columns: repeat(7, 1fr); text-align: center; font-size: 12px; font-weight: 800; color: var(--mut); margin-bottom: 10px; }
+.days-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 6px; }
+.day-cell {
+    aspect-ratio: 1 / 1.15;
+    border-radius: 14px;
+    border: 1px solid rgba(231, 211, 204, 0.5);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: space-between;
+    padding: 6px 2px;
+    cursor: pointer;
+    background: rgba(255, 255, 255, 0.72);
+    transition: transform 0.12s, background 0.15s;
+}
+.day-cell:hover { background: var(--pri-l); transform: scale(1.03); }
+.day-cell.other-month { opacity: 0.38; background: rgba(255, 255, 255, 0.4); }
+.day-cell.today { border: 2px solid var(--pri); background: #fff7ed; box-shadow: 0 2px 8px rgba(194, 65, 12, 0.18); }
+.day-num { font-size: 15px; font-weight: 700; }
+.order-badge { background: var(--pri); color: #fff; font-size: 10px; font-weight: 700; padding: 2px 4px; border-radius: 6px; width: 90%; text-align: center; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.stats-btn {
+    width: 100%;
+    max-width: 500px;
+    margin-top: 14px;
+    background: var(--card);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    border: 1px solid rgba(255, 255, 255, 0.9);
+    color: var(--txt);
+    padding: 15px;
+    border-radius: 18px;
+    font-size: 15px;
+    font-weight: 700;
+    cursor: pointer;
+    box-shadow: 0 6px 20px rgba(136, 65, 48, 0.1);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+}
+.stats-btn:hover { background: var(--pri-l); border-color: var(--pri); }
+.stat-box { background: #fff5f2; border: 1px solid var(--brd); border-radius: 14px; padding: 16px; margin-bottom: 12px; display: flex; justify-content: space-between; align-items: center; }
+.stat-label { font-size: 14px; color: var(--mut); font-weight: 600; }
+.stat-sub { font-size: 12px; color: var(--mut); margin-top: 2px; }
+.stat-val { font-size: 20px; font-weight: 800; color: var(--grn); }
+.modal-overlay { position: fixed; inset: 0; background: rgba(41, 29, 24, 0.55); display: none; align-items: flex-end; justify-content: center; z-index: 100; }
+.modal-overlay.active { display: flex; }
+.modal-content { background: #ffffff; width: 100%; max-width: 500px; max-height: 90vh; border-radius: 26px 26px 0 0; padding: 22px; overflow-y: auto; box-shadow: 0 -8px 30px rgba(0,0,0,0.15); }
+.modal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; padding-bottom: 10px; border-bottom: 1px solid var(--brd); }
+.close-btn { background: #fff5f2; border: none; border-radius: 50%; width: 34px; height: 34px; font-size: 18px; color: var(--pri); cursor: pointer; }
+.order-item { background: #fff8f6; border-radius: 14px; padding: 14px; margin-bottom: 12px; border-left: 4px solid var(--pri); }
+.order-top { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 6px; }
+.order-client { font-weight: 700; font-size: 16px; }
+.order-product { color: var(--pri); font-weight: 600; font-size: 14px; margin-bottom: 4px; }
+.order-price { color: var(--grn); font-weight: 700; font-size: 14px; margin-bottom: 6px; }
+.order-notes { font-size: 13px; white-space: pre-line; margin-bottom: 8px; }
+.order-img { width: 100%; max-height: 220px; object-fit: cover; border-radius: 10px; margin-top: 6px; cursor: pointer; }
+.delete-btn { background: #fee2e2; color: var(--red); border: none; padding: 4px 10px; border-radius: 8px; font-size: 12px; font-weight: 600; cursor: pointer; }
+.form-group { margin-bottom: 12px; }
+.form-group label { display: block; font-size: 13px; font-weight: 600; margin-bottom: 4px; color: var(--mut); }
+.form-group input, .form-group textarea { width: 100%; padding: 10px 12px; border: 1px solid var(--brd); border-radius: 12px; font-size: 14px; background: #fffcfb; }
+.btn-primary { background: var(--pri); color: #fff; border: none; width: 100%; padding: 13px; border-radius: 14px; font-size: 15px; font-weight: 700; cursor: pointer; margin-top: 6px; box-shadow: 0 4px 12px rgba(194, 65, 12, 0.25); }
+.section-divider { margin: 18px 0 12px; font-size: 15px; font-weight: 700; }
+.img-viewer { position: fixed; inset: 0; background: rgba(0,0,0,0.9); display: none; align-items: center; justify-content: center; z-index: 200; padding: 20px; }
+.img-viewer.active { display: flex; }
+.img-viewer img { max-width: 100%; max-height: 100%; border-radius: 12px; }
+</style>
 </head>
 <body>
+<div id="bgLayer"></div>
+<div id="bgTint"></div>
 
-    <header>
-        <button class="icon-btn" onclick="openBackupModal()" title="Záloha dat">⚙️</button>
-        <div class="title-box">
-            <h1>BakeMap</h1>
-            <p>Plánovač zakázek a pečení</p>
-        </div>
-        <button class="icon-btn" onclick="goToToday()" title="Dnešní den">📅</button>
-    </header>
-
-    <div class="calendar-card">
-        <div class="month-nav">
-            <h2 id="monthYearLabel">Listopad 2026</h2>
-            <div class="nav-arrows">
-                <button onclick="changeMonth(-1)">‹</button>
-                <button onclick="changeMonth(1)">›</button>
-            </div>
-        </div>
-        <div class="weekdays">
-            <div>PO</div><div>ÚT</div><div>ST</div><div>ČT</div><div>PÁ</div><div>SO</div><div>NE</div>
-        </div>
-        <div class="days-grid" id="daysGrid"></div>
+<header>
+    <button class="icon-btn" onclick="openBackupModal()" title="Záloha dat">⚙️</button>
+    <div class="title-box">
+        <h1>BakeMap</h1>
+        <p>Plánovač zakázek a pečení</p>
     </div>
+    <button class="icon-btn" onclick="goToToday()" title="Dnešní den">📅</button>
+</header>
 
-    <button class="stats-btn" onclick="openStatsModal()">💰 Přehled tržeb (měsíc / rok)</button>
-
-    <div class="modal-overlay" id="dayModal" onclick="closeModalOnBg(event, 'dayModal')">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h3 id="selectedDateTitle">Datum</h3>
-                <button class="close-btn" onclick="closeModal('dayModal')">✕</button>
-            </div>
-            <div id="ordersList"></div>
-            <div class="section-divider">➕ Přidat novou zakázku</div>
-            <form id="orderForm" onsubmit="saveOrder(event)">
-                <div class="form-group">
-                    <label>Jméno zákazníka *</label>
-                    <input type="text" id="clientName" placeholder="Např. Paní Nováková" required>
-                </div>
-                <div class="form-group">
-                    <label>Co se bude péct *</label>
-                    <input type="text" id="productType" placeholder="Např. Čokoládový dort" required>
-                </div>
-                <div class="form-group">
-                    <label>Cena (Kč)</label>
-                    <input type="number" id="orderPrice" placeholder="Např. 1200" min="0" step="1">
-                </div>
-                <div class="form-group">
-                    <label>Požadavky a detaily</label>
-                    <textarea id="orderNotes" rows="3" placeholder="Bez ořechů, nápis, čas vyzvednutí..."></textarea>
-                </div>
-                <div class="form-group">
-                    <label>Referenční fotka (nepovinné)</label>
-                    <input type="file" id="orderPhoto" accept="image/*">
-                </div>
-                <button type="submit" class="btn-primary">Uložit zakázku</button>
-            </form>
+<div class="calendar-card">
+    <div class="month-nav">
+        <h2 id="monthYearLabel"></h2>
+        <div class="nav-arrows">
+            <button onclick="changeMonth(-1)">‹</button>
+            <button onclick="changeMonth(1)">›</button>
         </div>
     </div>
-
-    <div class="modal-overlay" id="statsModal" onclick="closeModalOnBg(event, 'statsModal')">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h3>💰 Přehled tržeb</h3>
-                <button class="close-btn" onclick="closeModal('statsModal')">✕</button>
-            </div>
-            <div class="stat-box">
-                <div>
-                    <div class="stat-label" id="monthStatLabel">Tržby za měsíc</div>
-                    <div class="stat-sub" id="monthStatCount">0 zakázek</div>
-                </div>
-                <div class="stat-val" id="monthStatValue">0 Kč</div>
-            </div>
-            <div class="stat-box">
-                <div>
-                    <div class="stat-label" id="yearStatLabel">Celkové tržby za rok</div>
-                    <div class="stat-sub" id="yearStatCount">0 zakázek</div>
-                </div>
-                <div class="stat-val" id="yearStatValue">0 Kč</div>
-            </div>
-        </div>
+    <div class="weekdays">
+        <div>PO</div><div>ÚT</div><div>ST</div><div>ČT</div><div>PÁ</div><div>SO</div><div>NE</div>
     </div>
+    <div class="days-grid" id="daysGrid"></div>
+</div>
 
-    <div class="modal-overlay" id="backupModal" onclick="closeModalOnBg(event, 'backupModal')">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h3>Záloha a přenos dat</h3>
-                <button class="close-btn" onclick="closeModal('backupModal')">✕</button>
-            </div>
-            <p style="font-size: 13px; color: var(--text-muted); margin-bottom: 14px;">
-                Data jsou uložena v prohlížeči. Pro jistotu si je můžete stáhnout jako soubor.
-            </p>
-            <button class="btn-primary" onclick="exportData()" style="margin-bottom: 12px;">⬇️ Stáhnout zálohu</button>
+<button class="stats-btn" onclick="openStatsModal()">💰 Přehled tržeb (měsíc / rok)</button>
+
+<div class="modal-overlay" id="dayModal" onclick="closeModalOnBg(event,'dayModal')">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h3 id="selectedDateTitle"></h3>
+            <button class="close-btn" onclick="closeModal('dayModal')">✕</button>
+        </div>
+        <div id="ordersList"></div>
+        <div class="section-divider">➕ Přidat novou zakázku</div>
+        <form id="orderForm" onsubmit="saveOrder(event)">
             <div class="form-group">
-                <label>Obnovit ze souboru zálohy:</label>
-                <input type="file" accept=".json" onchange="importData(event)">
+                <label>Jméno zákazníka *</label>
+                <input type="text" id="clientName" placeholder="Např. Paní Nováková" required>
             </div>
+            <div class="form-group">
+                <label>Co se bude péct *</label>
+                <input type="text" id="productType" placeholder="Např. Čokoládový dort" required>
+            </div>
+            <div class="form-group">
+                <label>Cena (Kč)</label>
+                <input type="number" id="orderPrice" placeholder="Např. 1200" min="0" step="1">
+            </div>
+            <div class="form-group">
+                <label>Požadavky a detaily</label>
+                <textarea id="orderNotes" rows="3" placeholder="Bez ořechů, nápis, čas vyzvednutí..."></textarea>
+            </div>
+            <div class="form-group">
+                <label>Referenční fotka</label>
+                <input type="file" id="orderPhoto" accept="image/*">
+            </div>
+            <button type="submit" class="btn-primary">Uložit zakázku</button>
+        </form>
+    </div>
+</div>
+
+<div class="modal-overlay" id="statsModal" onclick="closeModalOnBg(event,'statsModal')">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h3>💰 Přehled tržeb</h3>
+            <button class="close-btn" onclick="closeModal('statsModal')">✕</button>
+        </div>
+        <div class="stat-box">
+            <div>
+                <div class="stat-label" id="monthStatLabel">Tržby za měsíc</div>
+                <div class="stat-sub" id="monthStatCount">0 zakázek</div>
+            </div>
+            <div class="stat-val" id="monthStatValue">0 Kč</div>
+        </div>
+        <div class="stat-box">
+            <div>
+                <div class="stat-label" id="yearStatLabel">Celkové tržby za rok</div>
+                <div class="stat-sub" id="yearStatCount">0 zakázek</div>
+            </div>
+            <div class="stat-val" id="yearStatValue">0 Kč</div>
         </div>
     </div>
+</div>
 
-    <div class="img-viewer" id="imgViewer" onclick="this.classList.remove('active')">
-        <img id="fullImg" src="" alt="Náhled">
+<div class="modal-overlay" id="backupModal" onclick="closeModalOnBg(event,'backupModal')">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h3>Záloha dat</h3>
+            <button class="close-btn" onclick="closeModal('backupModal')">✕</button>
+        </div>
+        <p style="font-size: 13px; color: var(--mut); margin-bottom: 14px;">
+            Data jsou uložena v prohlížeči. Pro jistotu si je můžete stáhnout jako soubor.
+        </p>
+        <button class="btn-primary" onclick="exportData()" style="margin-bottom: 12px;">⬇️ Stáhnout zálohu</button>
+        <div class="form-group">
+            <label>Obnovit ze souboru:</label>
+            <input type="file" accept=".json" onchange="importData(event)">
+        </div>
     </div>
+</div>
 
-    <script>
-        let currentDate = new Date();
-        let selectedDateKey = "";
-        let ordersData = JSON.parse(localStorage.getItem('bakeMapOrders')) || {};
+<div class="img-viewer" id="imgViewer" onclick="this.classList.remove('active')">
+    <img id="fullImg" src="" alt="Náhled">
+</div>
 
-        const monthsCz = ["Leden", "Únor", "Březen", "Duben", "Květen", "Červen", "Červenec", "Srpen", "Září", "Říjen", "Listopad", "Prosinec"];
+<script>
+const currentDate = new Date();
+let selectedDateKey = "";
+let ordersData = JSON.parse(localStorage.getItem('bakeMapOrders')) || {};
 
-        function renderCalendar() {
-            const year = currentDate.getFullYear();
-            const month = currentDate.getMonth();
-            document.getElementById('monthYearLabel').textContent = monthsCz[month] + " " + year;
+const monthsCz = new Array(
+    "Leden", "Únor", "Březen", "Duben", "Květen", "Červen",
+    "Červenec", "Srpen", "Září", "Říjen", "Listopad", "Prosinec"
+);
 
-            const firstDay = new Date(year, month, 1);
-            const lastDay = new Date(year, month + 1, 0);
-            let startDayOfWeek = firstDay.getDay() - 1;
-            if (startDayOfWeek === -1) startDayOfWeek = 6;
+const cakePhotos = new Array(
+    "https://images.unsplash.com/photo-1578985545062-69928b1d9587?auto=format&fit=crop&w=900&q=80",
+    "https://images.unsplash.com/photo-1565958011703-44f9829ba187?auto=format&fit=crop&w=900&q=80",
+    "https://images.unsplash.com/photo-1535141192574-5d4897c12636?auto=format&fit=crop&w=900&q=80",
+    "https://images.unsplash.com/photo-1563729784474-d77dbb933a9e?auto=format&fit=crop&w=900&q=80",
+    "https://images.unsplash.com/photo-1464349095431-e9a21285b5f3?auto=format&fit=crop&w=900&q=80",
+    "https://images.unsplash.com/photo-1558301211-0d8c8ddee6ec?auto=format&fit=crop&w=900&q=80",
+    "https://images.unsplash.com/photo-1588195538326-c5b1e9f80a1b?auto=format&fit=crop&w=900&q=80",
+    "https://images.unsplash.com/photo-1621303837174-89787a7d4729?auto=format&fit=crop&w=900&q=80",
+    "https://images.unsplash.com/photo-1571115177098-24ec42ed204d?auto=format&fit=crop&w=900&q=80",
+    "https://images.unsplash.com/photo-1606890737304-57a1ca8a5b62?auto=format&fit=crop&w=900&q=80",
+    "https://images.unsplash.com/photo-1542826438-bd32f43d626f?auto=format&fit=crop&w=900&q=80",
+    "https://images.unsplash.com/photo-1519340333755-56e9c1d04579?auto=format&fit=crop&w=900&q=80"
+);
 
-            const daysGrid = document.getElementById('daysGrid');
-            daysGrid.innerHTML = "";
-            const prevLastDay = new Date(year, month, 0).getDate();
-            const today = new Date();
+function updateBackground(year, month) {
+    const idx = Math.abs((year * 12 + month) % cakePhotos.length);
+    document.getElementById('bgLayer').style.backgroundImage = 'url("' + cakePhotos.at(idx) + '")';
+}
 
-            for (let i = startDayOfWeek; i > 0; i--) {
-                daysGrid.appendChild(createDayCell(year, month - 1, prevLastDay - i + 1, true));
-            }
-            for (let d = 1; d <= lastDay.getDate(); d++) {
-                const isToday = d === today.getDate() && month === today.getMonth() && year === today.getFullYear();
-                daysGrid.appendChild(createDayCell(year, month, d, false, isToday));
-            }
-            const totalCells = daysGrid.children.length;
-            const remaining = (totalCells <= 35 ? 35 : 42) - totalCells;
-            for (let d = 1; d <= remaining; d++) {
-                daysGrid.appendChild(createDayCell(year, month + 1, d, true));
-            }
+function renderCalendar() {
+    const year = currentDate.getFullYear();
+    const month = currentDate.getMonth();
+    updateBackground(year, month);
+    document.getElementById('monthYearLabel').textContent = monthsCz.at(month) + " " + year;
+
+    const firstDay = new Date(year, month, 1);
+    const lastDay = new Date(year, month + 1, 0);
+    let startDayOfWeek = firstDay.getDay() - 1;
+    if (startDayOfWeek === -1) startDayOfWeek = 6;
+
+    const daysGrid = document.getElementById('daysGrid');
+    daysGrid.innerHTML = "";
+    const prevLastDay = new Date(year, month, 0).getDate();
+    const today = new Date();
+
+    for (let i = startDayOfWeek; i > 0; i--) {
+        daysGrid.appendChild(createDayCell(year, month - 1, prevLastDay - i + 1, true));
+    }
+    for (let d = 1; d <= lastDay.getDate(); d++) {
+        const isToday = d === today.getDate() && month === today.getMonth() && year === today.getFullYear();
+        daysGrid.appendChild(createDayCell(year, month, d, false, isToday));
+    }
+    const totalCells = daysGrid.children.length;
+    const remaining = (totalCells <= 35 ? 35 : 42) - totalCells;
+    for (let d = 1; d <= remaining; d++) {
+        daysGrid.appendChild(createDayCell(year, month + 1, d, true));
+    }
+}
+
+function createDayCell(year, month, day, isOtherMonth, isToday = false) {
+    const dateObj = new Date(year, month, day);
+    const key = dateObj.getFullYear() + "-" + String(dateObj.getMonth() + 1).padStart(2, '0') + "-" + String(dateObj.getDate()).padStart(2, '0');
+
+    const cell = document.createElement('div');
+    cell.className = "day-cell" + (isOtherMonth ? " other-month" : "") + (isToday ? " today" : "");
+    cell.onclick = function() { openDayModal(key, dateObj); };
+
+    const numSpan = document.createElement('span');
+    numSpan.className = 'day-num';
+    numSpan.textContent = dateObj.getDate();
+    cell.appendChild(numSpan);
+
+    const dayOrders = ordersData[key] || [];
+    if (dayOrders.length > 0) {
+        const badge = document.createElement('div');
+        badge.className = 'order-badge';
+        badge.textContent = dayOrders.length === 1 ? dayOrders.at(0).client : dayOrders.length + " zakázky";
+        cell.appendChild(badge);
+    }
+    return cell;
+}
+
+function changeMonth(delta) {
+    currentDate.setMonth(currentDate.getMonth() + delta);
+    renderCalendar();
+}
+
+function goToToday() {
+    currentDate.setTime(Date.now());
+    renderCalendar();
+}
+
+function openDayModal(key, dateObj) {
+    selectedDateKey = key;
+    document.getElementById('selectedDateTitle').textContent = dateObj.getDate() + ". " + monthsCz.at(dateObj.getMonth()).toLowerCase() + " " + dateObj.getFullYear();
+    renderOrdersList();
+    document.getElementById('dayModal').classList.add('active');
+}
+
+function renderOrdersList() {
+    const listEl = document.getElementById('ordersList');
+    const dayOrders = ordersData[selectedDateKey] || [];
+    if (dayOrders.length === 0) {
+        listEl.innerHTML = '<p style="color: var(--mut); font-size: 14px; text-align: center; padding: 10px 0;">Na tento den zatím nejsou žádné zakázky.</p>';
+        return;
+    }
+    let html = "";
+    for (let i = 0; i < dayOrders.length; i++) {
+        const order = dayOrders.at(i);
+        const priceNum = Number(order.price) || 0;
+        html += '<div class="order-item">';
+        html += '<div class="order-top"><div class="order-client">👤 ' + escapeHtml(order.client) + '</div><button class="delete-btn" onclick="deleteOrder(' + i + ')">Smazat</button></div>';
+        html += '<div class="order-product">🎂 ' + escapeHtml(order.product) + '</div>';
+        if (priceNum > 0) {
+            html += '<div class="order-price">💵 ' + priceNum.toLocaleString('cs-CZ') + ' Kč</div>';
         }
-
-        function createDayCell(year, month, day, isOtherMonth, isToday = false) {
-            const dateObj = new Date(year, month, day);
-            const key = dateObj.getFullYear() + "-" + String(dateObj.getMonth() + 1).padStart(2, '0') + "-" + String(dateObj.getDate()).padStart(2, '0');
-            
-            const cell = document.createElement('div');
-            cell.className = "day-cell" + (isOtherMonth ? " other-month" : "") + (isToday ? " today" : "");
-            cell.onclick = function() { openDayModal(key, dateObj); };
-
-            const numSpan = document.createElement('span');
-            numSpan.className = 'day-num';
-            numSpan.textContent = dateObj.getDate();
-            cell.appendChild(numSpan);
-
-            const dayOrders = ordersData[key] || [];
-            if (dayOrders.length > 0) {
-                const badge = document.createElement('div');
-                badge.className = 'order-badge';
-                badge.textContent = dayOrders.length === 1 ? dayOrders[0].client : dayOrders.length + " zakázky";
-                cell.appendChild(badge);
-            }
-            return cell;
+        if (order.notes) {
+            html += '<div class="order-notes">' + escapeHtml(order.notes) + '</div>';
         }
-
-        function changeMonth(delta) { currentDate.setMonth(currentDate.getMonth() + delta); renderCalendar(); }
-        function goToToday() { currentDate = new Date(); renderCalendar(); }
-
-        function openDayModal(key, dateObj) {
-            selectedDateKey = key;
-            document.getElementById('selectedDateTitle').textContent = dateObj.getDate() + ". " + monthsCz[dateObj.getMonth()].toLowerCase() + " " + dateObj.getFullYear();
-            renderOrdersList();
-            document.getElementById('dayModal').classList.add('active');
+        if (order.photo) {
+            html += '<img src="' + order.photo + '" class="order-img" onclick="viewImage(this.src)" alt="Předloha">';
         }
+        html += '</div>';
+    }
+    listEl.innerHTML = html;
+}
 
-        function renderOrdersList() {
-            const listEl = document.getElementById('ordersList');
-            const dayOrders = ordersData[selectedDateKey] || [];
-            if (dayOrders.length === 0) {
-                listEl.innerHTML = '<p style="color: var(--text-muted); font-size: 14px; text-align: center; padding: 10px 0;">Na tento den zatím nejsou žádné zakázky.</p>';
-                return;
-            }
-            let html = "";
-            for (let i = 0; i < dayOrders.length; i++) {
-                const order = dayOrders[i];
-                const priceNum = Number(order.price) || 0;
-                html += '<div class="order-item">' +
-                    '<div class="order-top">' +
-                        '<div class="order-client">👤 ' + escapeHtml(order.client) + '</div>' +
-                        '<button class="delete-btn" onclick="deleteOrder(' + i + ')">Smazat</button>' +
-                    '</div>' +
-                    '<div class="order-product">🎂 ' + escapeHtml(order.product) + '</div>' +
-                    (priceNum > 0 ? '<div class="order-price">💵 ' + priceNum.toLocaleString('cs-CZ') + ' Kč</div>' : '') +
-                    (order.notes ? '<div class="order-notes">' + escapeHtml(order.notes) + '</div>' : '') +
-                    (order.photo ? '<img src="' + order.photo + '" class="order-img" onclick="viewImage(this.src)" alt="Předloha">' : '') +
-                '</div>';
-            }
-            listEl.innerHTML = html;
-        }
+function openStatsModal() {
+    const targetYear = String(currentDate.getFullYear());
+    const targetMonthPrefix = targetYear + "-" + String(currentDate.getMonth() + 1).padStart(2, '0');
+    let monthSum = 0;
+    let monthCount = 0;
+    let yearSum = 0;
+    let yearCount = 0;
+    const allKeys = Object.keys(ordersData);
 
-        function openStatsModal() {
-            const targetYear = String(currentDate.getFullYear());
-            const targetMonthPrefix = targetYear + "-" + String(currentDate.getMonth() + 1).padStart(2, '0');
-            let monthSum = 0, monthCount = 0, yearSum = 0, yearCount = 0;
-
-            const allKeys = Object.keys(ordersData);
-            for (let k = 0; k < allKeys.length; k++) {
-                const dateKey = allKeys[k];
-                const list = ordersData[dateKey] || [];
-                if (dateKey.startsWith(targetYear + "-")) {
-                    for (let j = 0; j < list.length; j++) {
-                        const p = Number(list[j].price) || 0;
-                        yearSum += p;
-                        yearCount++;
-                        if (dateKey.startsWith(targetMonthPrefix)) {
-                            monthSum += p;
-                            monthCount++;
-                        }
-                    }
+    for (let k = 0; k < allKeys.length; k++) {
+        const dateKey = allKeys.at(k);
+        const list = ordersData[dateKey] || [];
+        if (dateKey.startsWith(targetYear + "-")) {
+            for (let j = 0; j < list.length; j++) {
+                const p = Number(list.at(j).price) || 0;
+                yearSum += p;
+                yearCount++;
+                if (dateKey.startsWith(targetMonthPrefix)) {
+                    monthSum += p;
+                    monthCount++;
                 }
             }
-
-            document.getElementById('monthStatLabel').textContent = "Tržby: " + monthsCz[currentDate.getMonth()] + " " + targetYear;
-            document.getElementById('monthStatValue').textContent = monthSum.toLocaleString('cs-CZ') + " Kč";
-            document.getElementById('monthStatCount').textContent = "Počet zakázek v měsíci: " + monthCount;
-
-            document.getElementById('yearStatLabel').textContent = "Celkové tržby za rok " + targetYear;
-            document.getElementById('yearStatValue').textContent = yearSum.toLocaleString('cs-CZ') + " Kč";
-            document.getElementById('yearStatCount').textContent = "Počet zakázek v roce: " + yearCount;
-
-            document.getElementById('statsModal').classList.add('active');
         }
+    }
 
-        function compressImage(file) {
-            return new Promise(function(resolve) {
-                const reader = new FileReader();
-                reader.onload = function(e) {
-                    const img = new Image();
-                    img.onload = function() {
-                        const canvas = document.createElement('canvas');
-                        const scale = Math.min(1, 800 / img.width);
-                        canvas.width = img.width * scale;
-                        canvas.height = img.height * scale;
-                        canvas.getContext('2d').drawImage(img, 0, 0, canvas.width, canvas.height);
-                        resolve(canvas.toDataURL('image/jpeg', 0.7));
-                    };
-                    img.src = e.target.result;
-                };
-                reader.readAsDataURL(file);
-            });
-        }
+    document.getElementById('monthStatLabel').textContent = "Tržby: " + monthsCz.at(currentDate.getMonth()) + " " + targetYear;
+    document.getElementById('monthStatValue').textContent = monthSum.toLocaleString('cs-CZ') + " Kč";
+    document.getElementById('monthStatCount').textContent = "Počet zakázek v měsíci: " + monthCount;
 
-        async function saveOrder(e) {
-            e.preventDefault();
-            const client = document.getElementById('clientName').value.trim();
-            const product = document.getElementById('productType').value.trim();
-            const priceVal = document.getElementById('orderPrice').value.trim();
-            const price = priceVal ? Number(priceVal) : 0;
-            const notes = document.getElementById('orderNotes').value.trim();
-            const photoInput = document.getElementById('orderPhoto');
+    document.getElementById('yearStatLabel').textContent = "Celkové tržby za rok " + targetYear;
+    document.getElementById('yearStatValue').textContent = yearSum.toLocaleString('cs-CZ') + " Kč";
+    document.getElementById('yearStatCount').textContent = "Počet zakázek v roce: " + yearCount;
 
-            let photoBase64 = null;
-            if (photoInput.files && photoInput.files[0]) {
-                photoBase64 = await compressImage(photoInput.files[0]);
-            }
+    document.getElementById('statsModal').classList.add('active');
+}
 
-            if (!ordersData[selectedDateKey]) ordersData[selectedDateKey] = [];
-            ordersData[selectedDateKey].push({ client: client, product: product, price: price, notes: notes, photo: photoBase64 });
-
-            localStorage.setItem('bakeMapOrders', JSON.stringify(ordersData));
-            document.getElementById('orderForm').reset();
-            renderOrdersList();
-            renderCalendar();
-        }
-
-        function deleteOrder(index) {
-            if (confirm("Opravdu chcete tuto zakázku smazat?")) {
-                ordersData[selectedDateKey].splice(index, 1);
-                if (ordersData[selectedDateKey].length === 0) delete ordersData[selectedDateKey];
-              localStorage.setItem('bakeMapOrders', JSON.stringify(ordersData));
-                renderOrdersList();
-                renderCalendar();
-            }
-        }
-
-        function viewImage(src) { document.getElementById('fullImg').src = src; document.getElementById('imgViewer').classList.add('active'); }
-        function openBackupModal() { document.getElementById('backupModal').classList.add('active'); }
-        function closeModal(id) { document.getElementById(id).classList.remove('active'); }
-        function closeModalOnBg(e, id) { if (e.target.id === id) closeModal(id); }
-
-        function exportData() {
-            const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(ordersData));
-            const dlAnchor = document.createElement('a');
-            dlAnchor.setAttribute("href", dataStr);
-            dlAnchor.setAttribute("download", "zaloha-peceni-" + new Date().toISOString().slice(0,10) + ".json");
-            document.body.appendChild(dlAnchor);
-            dlAnchor.click();
-            dlAnchor.remove();
-        }
-
-        function importData(e) {
-            const file = e.target.files[0];
-            if (!file) return;
-            const reader = new FileReader();
-            reader.onload = function(event) {
-                try {
-                    ordersData = JSON.parse(event.target.result);
-                    localStorage.setItem('bakeMapOrders', JSON.stringify(ordersData));
-                    renderCalendar();
-                    alert("Záloha byla úspěšně obnovena!");
-                    closeModal('backupModal');
-                } catch (err) { alert("Chyba při nahrávání souboru."); }
+function compressImage(file) {
+    return new Promise(function(resolve) {
+        const reader = new FileReader();
+        reader.onload = function(e) {
+            const img = new Image();
+            img.onload = function() {
+                const canvas = document.createElement('canvas');
+                const scale = Math.min(1, 800 / img.width);
+                canvas.width = img.width * scale;
+                canvas.height = img.height * scale;
+                canvas.getContext('2d').drawImage(img, 0, 0, canvas.width, canvas.height);
+                resolve(canvas.toDataURL('image/jpeg', 0.7));
             };
-            reader.readAsText(file);
-        }
+            img.src = e.target.result;
+        };
+        reader.readAsDataURL(file);
+    });
+}
 
-        function escapeHtml(text) {
-            const div = document.createElement('div');
-            div.textContent = text;
-            return div.innerHTML;
-        }
+async function saveOrder(e) {
+    e.preventDefault();
+    const client = document.getElementById('clientName').value.trim();
+    const product = document.getElementById('productType').value.trim();
+    const priceVal = document.getElementById('orderPrice').value.trim();
+    const price = priceVal ? Number(priceVal) : 0;
+    const notes = document.getElementById('orderNotes').value.trim()
+    const photoInput = document.getElementById('orderPhoto');
 
+    let photoBase64 = null;
+    if (photoInput.files && photoInput.files.item(0)) {
+        photoBase64 = await compressImage(photoInput.files.item(0));
+    }
+
+    if (!ordersData[selectedDateKey]) {
+        ordersData[selectedDateKey] = new Array();
+    }
+    ordersData[selectedDateKey].push({
+        client: client,
+        product: product,
+        price: price,
+        notes: notes,
+        photo: photoBase64
+    });
+
+    localStorage.setItem('bakeMapOrders', JSON.stringify(ordersData));
+    document.getElementById('orderForm').reset();
+    renderOrdersList();
+    renderCalendar();
+}
+
+function deleteOrder(index) {
+    if (confirm("Opravdu chcete tuto zakázku smazat?")) {
+        ordersData[selectedDateKey].splice(index, 1);
+        if (ordersData[selectedDateKey].length === 0) {
+            delete ordersData[selectedDateKey];
+        }
+        localStorage.setItem('bakeMapOrders', JSON.stringify(ordersData));
+        renderOrdersList();
         renderCalendar();
-    </script>
+    }
+}
+
+function viewImage(src) {
+    document.getElementById('fullImg').src = src;
+    document.getElementById('imgViewer').classList.add('active');
+}
+
+function openBackupModal() {
+    document.getElementById('backupModal').classList.add('active');
+}
+
+function closeModal(id) {
+    document.getElementById(id).classList.remove('active');
+}
+
+function closeModalOnBg(e, id) {
+    if (e.target.id === id) closeModal(id);
+}
+
+function exportData() {
+    const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(ordersData));
+    const dlAnchor = document.createElement('a');
+    dlAnchor.setAttribute("href", dataStr);
+    dlAnchor.setAttribute("download", "zaloha-peceni-" + new Date().toISOString().slice(0, 10) + ".json");
+    document.body.appendChild(dlAnchor);
+    dlAnchor.click();
+    dlAnchor.remove();
+}
+
+function importData(e) {
+    const file = e.target.files.item(0);
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = function(event) {
+        try {
+            ordersData = JSON.parse(event.target.result);
+            localStorage.setItem('bakeMapOrders', JSON.stringify(ordersData));
+            renderCalendar();
+            alert("Záloha byla úspěšně obnovena!");
+            closeModal('backupModal');
+        } catch (err) {
+            alert("Chyba při nahrávání souboru.");
+        }
+    };
+    reader.readAsText(file);
+}
+
+function escapeHtml(text) {
+    const div = document.createElement('div');
+    div.textContent = text;
+    return div.innerHTML;
+}
+
+renderCalendar();
+</script>
 </body>
 </html>
-       
