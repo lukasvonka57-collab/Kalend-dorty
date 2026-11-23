@@ -6,123 +6,273 @@
 <title>BakeMap – Plánovač zakázek</title>
 <style>
 :root {
-    --bg-base: #fdf6f0;
-    --card-bg: rgba(255, 255, 255, 0.86);
+    --bg: #fdf6f0;
+    --card: rgba(255, 255, 255, 0.88);
     --card-solid: #ffffff;
-    --primary: #c2593f;
-    --primary-light: #fae6e0;
-    --text-main: #2d1e1a;
-    --text-muted: #7a635d;
-    --border: rgba(194, 89, 63, 0.18);
-    --red: #dc2626;
-    --red-bg: #fee2e2;
-    --orange: #d97706;
-    --orange-bg: #fef3c7;
-    --green: #059669;
-    --green-bg: #d1fae5;
+    --pri: #c86d51;
+    --pri-dark: #a65238;
+    --pri-l: #fae6df;
+    --txt: #3d2c2e;
+    --mut: #8c7375;
+    --brd: rgba(200, 109, 81, 0.22);
+    --red: #e05252;
+    --red-l: #fde8e8;
+    --org: #d97706;
+    --org-l: #fef3c7;
+    --grn: #2e8b57;
+    --grn-l: #e2f5ea;
 }
 * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
 body {
-    background-color: var(--bg-base);
-    color: var(--text-main);
+    background-color: var(--bg);
+    color: var(--txt);
     display: flex;
     flex-direction: column;
     align-items: center;
     min-height: 100vh;
     padding: 16px;
     position: relative;
-    overflow-x: hidden;
 }
-#bgLayer {
+.bg-layer {
     position: fixed;
     inset: 0;
     background-size: cover;
     background-position: center;
     opacity: 0.16;
+    z-index: -2;
+    transition: background-image 0.5s ease-in-out;
+}
+.bg-gradient {
+    position: fixed;
+    inset: 0;
+    background: linear-gradient(180deg, rgba(253,246,240,0.45) 0%, rgba(250,232,224,0.75) 100%);
     z-index: -1;
-    transition: background-image 0.6s ease-in-out;
-    pointer-events: none;
 }
 header { width: 100%; max-width: 500px; display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; }
-.icon-btn { background: var(--card-bg); backdrop-filter: blur(10px); border: 1px solid var(--border); border-radius: 14px; width: 44px; height: 44px; display: flex; align-items: center; justify-content: center; font-size: 20px; cursor: pointer; box-shadow: 0 2px 8px rgba(45,30,26,0.06); }
+.header-actions { display: flex; gap: 8px; }
+.icon-btn {
+    background: var(--card);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    border: 1px solid var(--brd);
+    border-radius: 14px;
+    width: 44px;
+    height: 44px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 20px;
+    cursor: pointer;
+    box-shadow: 0 4px 12px rgba(61, 44, 46, 0.06);
+}
 .title-box { text-align: center; }
-.title-box h1 { color: var(--primary); font-size: 26px; font-weight: 800; letter-spacing: -0.5px; }
-.title-box p { color: var(--text-muted); font-size: 13px; font-weight: 500; }
-.calendar-card { background: var(--card-bg); backdrop-filter: blur(12px); width: 100%; max-width: 500px; border-radius: 24px; padding: 18px; border: 1px solid var(--border); box-shadow: 0 8px 24px rgba(45,30,26,0.08); }
+.title-box h1 { color: var(--pri); font-size: 26px; font-weight: 800; letter-spacing: -0.5px; }
+.title-box p { color: var(--mut); font-size: 13px; font-weight: 500; }
+.calendar-card {
+    background: var(--card);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border: 1px solid var(--brd);
+    width: 100%;
+    max-width: 500px;
+    border-radius: 24px;
+    padding: 18px;
+    box-shadow: 0 8px 25px rgba(61, 44, 46, 0.08);
+}
 .month-nav { display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; }
-.month-nav h2 { font-size: 20px; font-weight: 800; color: var(--text-main); }
-.nav-arrows button { background: var(--primary-light); color: var(--primary); border: none; border-radius: 12px; width: 38px; height: 38px; font-size: 18px; font-weight: 800; cursor: pointer; margin-left: 6px; }
-.weekdays { display: grid; grid-template-columns: repeat(7, 1fr); text-align: center; font-size: 12px; font-weight: 700; color: var(--text-muted); margin-bottom: 10px; }
+.month-nav h2 { font-size: 20px; font-weight: 800; color: var(--txt); }
+.nav-arrows button {
+    background: var(--pri-l);
+    color: var(--pri-dark);
+    border: none;
+    border-radius: 12px;
+    width: 38px;
+    height: 38px;
+    font-size: 18px;
+    font-weight: 700;
+    cursor: pointer;
+    margin-left: 6px;
+}
+.weekdays { display: grid; grid-template-columns: repeat(7, 1fr); text-align: center; font-size: 12px; font-weight: 700; color: var(--mut); margin-bottom: 10px; }
 .days-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 6px; }
-.day-cell { aspect-ratio: 1 / 1.18; border-radius: 14px; border: 1px solid transparent; display: flex; flex-direction: column; align-items: center; justify-content: space-between; padding: 6px 2px; cursor: pointer; background: rgba(255,255,255,0.65); transition: 0.15s; }
-.day-cell:hover { background: var(--primary-light); }
+.day-cell {
+    aspect-ratio: 1 / 1.15;
+    border-radius: 14px;
+    border: 1px solid transparent;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: space-between;
+    padding: 6px 2px;
+    cursor: pointer;
+    background: rgba(255, 255, 255, 0.65);
+    transition: transform 0.1s, background 0.15s;
+}
+.day-cell:hover { background: var(--pri-l); }
 .day-cell.other-month { opacity: 0.35; }
-.day-cell.today { border: 2px solid var(--primary); background: #fff8f5; }
+.day-cell.today { border: 2px solid var(--pri); background: #fff8f5; }
 .day-num { font-size: 15px; font-weight: 700; }
-.order-badge { color: #fff; font-size: 10px; font-weight: 700; padding: 2px 4px; border-radius: 6px; width: 92%; text-align: center; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-.badge-unpaid { background: var(--red); }
-.badge-deposit { background: var(--orange); }
-.badge-paid { background: var(--green); }
-.action-row { width: 100%; max-width: 500px; display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 14px; }
-.action-btn { background: var(--card-bg); backdrop-filter: blur(10px); border: 1px solid var(--border); color: var(--text-main); padding: 14px 10px; border-radius: 16px; font-size: 14px; font-weight: 700; cursor: pointer; box-shadow: 0 4px 12px rgba(45,30,26,0.06); display: flex; align-items: center; justify-content: center; gap: 6px; }
-.action-btn.primary-action { background: var(--primary-light); color: var(--primary); }
-.modal-overlay { position: fixed; inset: 0; background: rgba(45,30,26,0.55); display: none; align-items: flex-end; justify-content: center; z-index: 100; }
+.order-badge {
+    background: var(--pri);
+    color: #fff;
+    font-size: 10px;
+    font-weight: 700;
+    padding: 2px 5px;
+    border-radius: 6px;
+    width: 92%;
+    text-align: center;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+.order-badge.paid { background: var(--grn); }
+.order-badge.deposit { background: var(--org); }
+.order-badge.unpaid { background: var(--red); }
+
+.bottom-actions {
+    width: 100%;
+    max-width: 500px;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+    margin-top: 14px;
+}
+.action-btn {
+    background: var(--card);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    border: 1px solid var(--brd);
+    color: var(--txt);
+    padding: 14px 10px;
+    border-radius: 18px;
+    font-size: 14px;
+    font-weight: 700;
+    cursor: pointer;
+    box-shadow: 0 4px 14px rgba(61, 44, 46, 0.06);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    text-align: center;
+}
+.action-btn:hover { background: var(--pri-l); border-color: var(--pri); }
+
+.stat-box { background: #fdf6f0; border: 1px solid var(--brd); border-radius: 16px; padding: 16px; margin-bottom: 12px; }
+.stat-row { display: flex; justify-content: space-between; align-items: center; }
+.stat-label { font-size: 14px; color: var(--txt); font-weight: 700; }
+.stat-sub { font-size: 12px; color: var(--mut); margin-top: 2px; }
+.stat-val { font-size: 20px; font-weight: 800; color: var(--grn); }
+.stat-breakdown { margin-top: 10px; padding-top: 8px; border-top: 1px dashed var(--brd); display: flex; justify-content: space-between; font-size: 12px; font-weight: 600; }
+
+.week-day-group { margin-bottom: 16px; }
+.week-day-title { font-size: 14px; font-weight: 800; color: var(--pri); margin-bottom: 8px; padding-bottom: 4px; border-bottom: 1px solid var(--brd); }
+.week-item { background: #fdf6f0; border-radius: 12px; padding: 10px 12px; margin-bottom: 8px; border-left: 4px solid var(--pri); }
+.week-item.paid { border-left-color: var(--grn); }
+.week-item.deposit { border-left-color: var(--org); }
+.week-item.unpaid { border-left-color: var(--red); }
+
+.search-input-wrap { margin-bottom: 14px; }
+.search-input-wrap input {
+    width: 100%;
+    padding: 12px 14px;
+    border: 2px solid var(--pri);
+    border-radius: 14px;
+    font-size: 15px;
+    background: #fff;
+    color: var(--txt);
+    outline: none;
+}
+.search-result-item {
+    background: #fdf6f0;
+    border: 1px solid var(--brd);
+    border-radius: 14px;
+    padding: 12px;
+    margin-bottom: 10px;
+    cursor: pointer;
+    border-left: 4px solid var(--pri);
+}
+.search-result-item.paid { border-left-color: var(--grn); }
+.search-result-item.deposit { border-left-color: var(--org); }
+.search-result-item.unpaid { border-left-color: var(--red); }
+.search-date-tag { font-size: 12px; font-weight: 800; color: var(--pri-dark); margin-bottom: 4px; display: flex; justify-content: space-between; }
+
+.modal-overlay { position: fixed; inset: 0; background: rgba(61, 44, 46, 0.55); backdrop-filter: blur(4px); display: none; align-items: flex-end; justify-content: center; z-index: 100; }
 .modal-overlay.active { display: flex; }
-.modal-content { background: var(--card-solid); width: 100%; max-width: 500px; max-height: 92vh; border-radius: 26px 26px 0 0; padding: 20px; overflow-y: auto; }
-.modal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; padding-bottom: 12px; border-bottom: 1px solid var(--border); }
-.close-btn { background: var(--primary-light); color: var(--primary); border: none; border-radius: 50%; width: 34px; height: 34px; font-size: 18px; font-weight: bold; cursor: pointer; }
-.order-item { background: #fdf8f5; border-radius: 16px; padding: 14px; margin-bottom: 12px; border-left: 5px solid var(--primary); }
-.order-item.st-unpaid { border-left-color: var(--red); }
-.order-item.st-deposit { border-left-color: var(--orange); }
-.order-item.st-paid { border-left-color: var(--green); }
-.order-top { display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px; }
+.modal-content { background: var(--card-solid); width: 100%; max-width: 500px; max-height: 90vh; border-radius: 26px 26px 0 0; padding: 20px; overflow-y: auto; }
+.modal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; padding-bottom: 10px; border-bottom: 1px solid var(--brd); }
+.close-btn { background: var(--pri-l); color: var(--pri-dark); border: none; border-radius: 50%; width: 34px; height: 34px; font-size: 18px; font-weight: bold; cursor: pointer; }
+
+.order-item { background: #fdf6f0; border-radius: 16px; padding: 14px; margin-bottom: 12px; border-left: 5px solid var(--pri); }
+.order-item.paid { border-left-color: var(--grn); }
+.order-item.deposit { border-left-color: var(--org); }
+.order-item.unpaid { border-left-color: var(--red); }
+
+.order-top { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 6px; }
 .order-client { font-weight: 800; font-size: 16px; }
-.order-time { display: inline-block; background: var(--primary-light); color: var(--primary); font-size: 12px; font-weight: 700; padding: 2px 8px; border-radius: 8px; margin-bottom: 6px; }
-.order-product { color: var(--primary); font-weight: 700; font-size: 14px; margin-bottom: 6px; }
-.order-meta { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 8px; margin-bottom: 6px; }
-.order-price { color: var(--text-main); font-weight: 800; font-size: 15px; }
-.deposit-box { background: var(--orange-bg); border: 1px solid rgba(217,119,6,0.3); border-radius: 12px; padding: 10px 12px; margin: 8px 0; }
-.deposit-row { display: flex; justify-content: space-between; align-items: center; gap: 8px; flex-wrap: wrap; }
-.deposit-info { font-size: 13px; color: #92400e; font-weight: 700; }
-.deposit-sub { font-size: 12px; color: #b45309; margin-top: 2px; }
-.deposit-edit { display: flex; align-items: center; gap: 6px; }
-.deposit-edit input { width: 95px; padding: 6px 8px; border: 1px solid #f59e0b; border-radius: 8px; font-size: 13px; font-weight: 700; background: #fff; }
-.deposit-edit button { background: var(--orange); color: #fff; border: none; padding: 6px 10px; border-radius: 8px; font-size: 12px; font-weight: 700; cursor: pointer; }
-.status-pill { border: none; padding: 5px 11px; border-radius: 20px; font-size: 12px; font-weight: 700; cursor: pointer; }
-.pill-unpaid { background: var(--red-bg); color: var(--red); }
-.pill-deposit { background: var(--orange-bg); color: var(--orange); }
-.pill-paid { background: var(--green-bg); color: var(--green); }
-.order-notes { font-size: 13px; white-space: pre-line; margin-bottom: 8px; color: var(--text-muted); }
+.order-time { display: inline-block; background: var(--pri-l); color: var(--pri-dark); font-size: 12px; font-weight: 700; padding: 2px 8px; border-radius: 8px; margin-bottom: 6px; }
+.order-product { color: var(--pri); font-weight: 700; font-size: 14px; margin-bottom: 6px; }
+.order-meta-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px; flex-wrap: wrap; gap: 6px; }
+.order-price { color: var(--txt); font-weight: 800; font-size: 15px; }
+
+.status-pill {
+    border: none;
+    padding: 5px 11px;
+    border-radius: 20px;
+    font-size: 12px;
+    font-weight: 700;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+}
+.status-pill.paid { background: var(--grn-l); color: var(--grn); }
+.status-pill.deposit { background: var(--org-l); color: var(--org); }
+.status-pill.unpaid { background: var(--red-l); color: var(--red); }
+
+.deposit-box {
+    background: var(--org-l);
+    border: 1px solid rgba(217, 119, 6, 0.3);
+    border-radius: 12px;
+    padding: 10px;
+    margin-bottom: 8px;
+}
+.deposit-box-title { font-size: 12px; font-weight: 700; color: var(--org); margin-bottom: 6px; display: flex; justify-content: space-between; }
+.deposit-edit-row { display: flex; gap: 6px; }
+.deposit-edit-row input { flex: 1; padding: 6px 10px; border: 1px solid rgba(217, 119, 6, 0.4); border-radius: 8px; font-size: 14px; font-weight: 700; background: #fff; }
+.deposit-save-btn { background: var(--org); color: #fff; border: none; padding: 6px 12px; border-radius: 8px; font-size: 12px; font-weight: 700; cursor: pointer; }
+
+.order-notes { font-size: 13px; white-space: pre-line; margin-bottom: 8px; color: #524042; }
 .order-img { width: 100%; max-height: 220px; object-fit: cover; border-radius: 12px; margin-top: 6px; cursor: pointer; }
-.delete-btn { background: var(--red-bg); color: var(--red); border: none; padding: 5px 10px; border-radius: 8px; font-size: 12px; font-weight: 700; cursor: pointer; }
-.form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.delete-btn { background: var(--red-l); color: var(--red); border: none; padding: 5px 10px; border-radius: 8px; font-size: 12px; font-weight: 700; cursor: pointer; }
+
 .form-group { margin-bottom: 12px; }
-.form-group label { display: block; font-size: 13px; font-weight: 700; margin-bottom: 4px; color: var(--text-muted); }
-.form-group input, .form-group textarea, .form-group select { width: 100%; padding: 10px 12px; border: 1px solid var(--border); border-radius: 12px; font-size: 14px; background: #fff; }
-.btn-primary { background: var(--primary); color: #fff; border: none; width: 100%; padding: 14px; border-radius: 14px; font-size: 15px; font-weight: 700; cursor: pointer; margin-top: 6px; }
-.section-divider { margin: 18px 0 12px; font-size: 16px; font-weight: 800; color: var(--primary); }
-.stat-box { background: #fdf8f5; border: 1px solid var(--border); border-radius: 16px; padding: 16px; margin-bottom: 12px; }
-.stat-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; }
-.stat-label { font-size: 14px; color: var(--text-muted); font-weight: 700; }
-.stat-val { font-size: 22px; font-weight: 800; color: var(--primary); }
-.stat-breakdown { display: flex; justify-content: space-between; font-size: 13px; padding-top: 8px; border-top: 1px dashed var(--border); }
-.week-day-group { margin-bottom: 14px; }
-.week-day-title { font-size: 14px; font-weight: 800; color: var(--primary); margin-bottom: 6px; padding-bottom: 4px; border-bottom: 1px solid var(--border); }
-.img-viewer { position: fixed; inset: 0; background: rgba(0,0,0,0.9); display: none; align-items: center; justify-content: center; z-index: 200; padding: 20px; }
+.form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.form-group label { display: block; font-size: 13px; font-weight: 700; margin-bottom: 4px; color: var(--mut); }
+.form-group input, .form-group textarea, .form-group select { width: 100%; padding: 10px 12px; border: 1px solid var(--brd); border-radius: 12px; font-size: 14px; background: #fff; color: var(--txt); }
+.btn-primary { background: var(--pri); color: #fff; border: none; width: 100%; padding: 13px; border-radius: 14px; font-size: 15px; font-weight: 700; cursor: pointer; margin-top: 6px; }
+.section-divider { margin: 18px 0 12px; font-size: 15px; font-weight: 800; color: var(--txt); }
+.img-viewer { position: fixed; inset: 0; background: rgba(0,0,0,.9); display: none; align-items: center; justify-content: center; z-index: 200; padding: 20px; }
 .img-viewer.active { display: flex; }
-.img-viewer img { max-width: 100%; max-height: 100%; border-radius: 12px; }
+.img-viewer img { max-width: 100%; max-height: 100%; border-radius: 14px; }
 </style>
 </head>
 <body>
-<div id="bgLayer"></div>
+
+<div class="bg-layer" id="bgLayer"></div>
+<div class="bg-gradient"></div>
+
 <header>
-    <button class="icon-btn" onclick="openBackupModal()">⚙️</button>
+    <button class="icon-btn" onclick="openBackupModal()" title="Záloha dat">⚙️</button>
     <div class="title-box">
         <h1>BakeMap</h1>
         <p>Plánovač zakázek a pečení</p>
     </div>
-    <button class="icon-btn" onclick="goToToday()">📅</button>
+    <div class="header-actions">
+        <button class="icon-btn" onclick="openSearchModal()" title="Hledat zakázku">🔍</button>
+        <button class="icon-btn" onclick="goToToday()" title="Dnešní den">📅</button>
+    </div>
 </header>
+
 <div class="calendar-card">
     <div class="month-nav">
         <h2 id="monthYearLabel"></h2>
@@ -136,11 +286,13 @@ header { width: 100%; max-width: 500px; display: flex; justify-content: space-be
     </div>
     <div class="days-grid" id="daysGrid"></div>
 </div>
-<div class="action-row">
+
+<div class="bottom-actions">
     <button class="action-btn" onclick="openWeekModal()">📋 Plán na 7 dní</button>
-    <button class="action-btn primary-action" onclick="openStatsModal()">💰 Přehled tržeb</button>
+    <button class="action-btn" onclick="openStatsModal()">💰 Přehled tržeb</button>
 </div>
 
+<!-- Detail dne -->
 <div class="modal-overlay" id="dayModal" onclick="closeModalOnBg(event,'dayModal')">
     <div class="modal-content">
         <div class="modal-header">
@@ -170,15 +322,15 @@ header { width: 100%; max-width: 500px; display: flex; justify-content: space-be
             </div>
             <div class="form-group">
                 <label>Stav platby</label>
-                <select id="orderStatus" onchange="toggleFormDeposit()">
+                <select id="orderStatus" onchange="toggleNewDepositRow()">
                     <option value="unpaid">🔴 Nezaplaceno</option>
                     <option value="deposit">🟠 Záloha</option>
                     <option value="paid">🟢 Zaplaceno / Hotovo</option>
                 </select>
             </div>
-            <div class="form-group" id="formDepositGroup" style="display:none;">
+            <div class="form-group" id="newDepositGroup" style="display: none;">
                 <label>Výše složené zálohy (Kč)</label>
-                <input type="number" id="orderDeposit" placeholder="Např. 500" min="0" step="1">
+                <input type="number" id="newDepositAmount" placeholder="Např. 500" min="0" step="1">
             </div>
             <div class="form-group">
                 <label>Požadavky a detaily</label>
@@ -193,6 +345,21 @@ header { width: 100%; max-width: 500px; display: flex; justify-content: space-be
     </div>
 </div>
 
+<!-- Vyhledávání -->
+<div class="modal-overlay" id="searchModal" onclick="closeModalOnBg(event,'searchModal')">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h3>🔍 Hledat zakázku</h3>
+            <button class="close-btn" onclick="closeModal('searchModal')">✕</button>
+        </div>
+        <div class="search-input-wrap">
+            <input type="text" id="searchInput" placeholder="Zadejte jméno zákazníka, dort nebo poznámku..." oninput="runSearch()">
+        </div>
+        <div id="searchResults"></div>
+    </div>
+</div>
+
+<!-- Plán na 7 dní -->
 <div class="modal-overlay" id="weekModal" onclick="closeModalOnBg(event,'weekModal')">
     <div class="modal-content">
         <div class="modal-header">
@@ -203,6 +370,7 @@ header { width: 100%; max-width: 500px; display: flex; justify-content: space-be
     </div>
 </div>
 
+<!-- Přehled tržeb -->
 <div class="modal-overlay" id="statsModal" onclick="closeModalOnBg(event,'statsModal')">
     <div class="modal-content">
         <div class="modal-header">
@@ -210,35 +378,45 @@ header { width: 100%; max-width: 500px; display: flex; justify-content: space-be
             <button class="close-btn" onclick="closeModal('statsModal')">✕</button>
         </div>
         <div class="stat-box">
-            <div class="stat-header">
-                <div class="stat-label" id="monthStatLabel">Měsíc</div>
+            <div class="stat-row">
+                <div>
+                    <div class="stat-label" id="monthStatLabel">Tržby za měsíc</div>
+                    <div class="stat-sub" id="monthStatCount">0 zakázek</div>
+                </div>
                 <div class="stat-val" id="monthStatValue">0 Kč</div>
             </div>
             <div class="stat-breakdown">
-                <span style="color:var(--green);font-weight:700" id="monthPaid">Zaplaceno + zálohy: 0 Kč</span>
-                <span style="color:var(--red);font-weight:700" id="monthUnpaid">Zbývá doplatit: 0 Kč</span>
+                <span style="color: var(--grn);" id="monthPaidText">Vybráno: 0 Kč</span>
+                <span style="color: var(--red);" id="monthUnpaidText">Zbývá vybrat: 0 Kč</span>
             </div>
         </div>
         <div class="stat-box">
-            <div class="stat-header">
-                <div class="stat-label" id="yearStatLabel">Rok</div>
+            <div class="stat-row">
+                <div>
+                    <div class="stat-label" id="yearStatLabel">Celkové tržby za rok</div>
+                    <div class="stat-sub" id="yearStatCount">0 zakázek</div>
+                </div>
                 <div class="stat-val" id="yearStatValue">0 Kč</div>
             </div>
             <div class="stat-breakdown">
-                <span style="color:var(--green);font-weight:700" id="yearPaid">Zaplaceno + zálohy: 0 Kč</span>
-                <span style="color:var(--red);font-weight:700" id="yearUnpaid">Zbývá doplatit: 0 Kč</span>
+                <span style="color: var(--grn);" id="yearPaidText">Vybráno: 0 Kč</span>
+                <span style="color: var(--red);" id="yearUnpaidText">Zbývá vybrat: 0 Kč</span>
             </div>
         </div>
     </div>
 </div>
 
+<!-- Záloha dat -->
 <div class="modal-overlay" id="backupModal" onclick="closeModalOnBg(event,'backupModal')">
     <div class="modal-content">
         <div class="modal-header">
-            <h3>Záloha dat</h3>
+            <h3>Záloha a přenos dat</h3>
             <button class="close-btn" onclick="closeModal('backupModal')">✕</button>
         </div>
-        <button class="btn-primary" onclick="exportData()" style="margin-bottom:12px">⬇️ Stáhnout zálohu</button>
+        <p style="font-size: 13px; color: var(--mut); margin-bottom: 14px;">
+            Data jsou uložena v tomto zařízení. Pro jistotu si je můžete kdykoliv stáhnout jako soubor.
+        </p>
+        <button class="btn-primary" onclick="exportData()" style="margin-bottom: 12px;">⬇️ Stáhnout zálohu</button>
         <div class="form-group">
             <label>Obnovit ze souboru:</label>
             <input type="file" accept=".json" onchange="importData(event)">
@@ -246,62 +424,63 @@ header { width: 100%; max-width: 500px; display: flex; justify-content: space-be
     </div>
 </div>
 
+<!-- Náhled fotky -->
 <div class="img-viewer" id="imgViewer" onclick="this.classList.remove('active')">
-    <img id="fullImg" src="">
+    <img id="fullImg" src="" alt="Náhled">
 </div>
 
 <script>
 var currentDate = new Date();
 var selectedDateKey = "";
 var ordersData = JSON.parse(localStorage.getItem('bakeMapOrders')) || {};
+
 var monthsCz = new Array("Leden","Únor","Březen","Duben","Květen","Červen","Červenec","Srpen","Září","Říjen","Listopad","Prosinec");
-var cakePhotos = new Array(
-    "https://images.unsplash.com/photo-1578985545062-69928b1d9587?auto=format&fit=crop&w=900&q=80",
-    "https://images.unsplash.com/photo-1563729784474-d77dbb933a9e?auto=format&fit=crop&w=900&q=80",
-    "https://images.unsplash.com/photo-1535141192574-5d4897c12636?auto=format&fit=crop&w=900&q=80",
-    "https://images.unsplash.com/photo-1464349095431-e9a21285b5f3?auto=format&fit=crop&w=900&q=80",
-    "https://images.unsplash.com/photo-1588195538326-c5b1e9f80a1b?auto=format&fit=crop&w=900&q=80",
-    "https://images.unsplash.com/photo-1565958011703-44f9829ba187?auto=format&fit=crop&w=900&q=80",
-    "https://images.unsplash.com/photo-1571115177098-24ec42ed204d?auto=format&fit=crop&w=900&q=80",
-    "https://images.unsplash.com/photo-1621303837174-89787a7d4729?auto=format&fit=crop&w=900&q=80",
-    "https://images.unsplash.com/photo-1557925923-cd4648e211a0?auto=format&fit=crop&w=900&q=80",
-    "https://images.unsplash.com/photo-1606890737304-57a1ca8a5b62?auto=format&fit=crop&w=900&q=80",
-    "https://images.unsplash.com/photo-1542826438-bd32f43d626f?auto=format&fit=crop&w=900&q=80",
-    "https://images.unsplash.com/photo-1519869325930-281384150729?auto=format&fit=crop&w=900&q=80"
+var monthsGenitive = new Array("ledna","února","března","dubna","května","června","července","srpna","září","října","listopadu","prosince");
+
+var cakeBackgrounds = new Array(
+    "https://images.unsplash.com/photo-1578985545062-69928b1d9587?auto=format&fit=crop&w=1000&q=80",
+    "https://images.unsplash.com/photo-1565958011703-44f9829ba187?auto=format&fit=crop&w=1000&q=80",
+    "https://images.unsplash.com/photo-1464349095431-e9a21285b5f3?auto=format&fit=crop&w=1000&q=80",
+    "https://images.unsplash.com/photo-1535141192574-5d4897c12636?auto=format&fit=crop&w=1000&q=80",
+    "https://images.unsplash.com/photo-1557925923-cd4648e211a0?auto=format&fit=crop&w=1000&q=80",
+    "https://images.unsplash.com/photo-1588195538326-c5b1e9f80a1b?auto=format&fit=crop&w=1000&q=80",
+    "https://images.unsplash.com/photo-1563729784474-d77dbb933a9e?auto=format&fit=crop&w=1000&q=80",
+    "https://images.unsplash.com/photo-1621303837174-89787a7d4729?auto=format&fit=crop&w=1000&q=80",
+    "https://images.unsplash.com/photo-1519869325930-281384150729?auto=format&fit=crop&w=1000&q=80",
+    "https://images.unsplash.com/photo-1606890737304-57a1ca8a5b62?auto=format&fit=crop&w=1000&q=80",
+    "https://images.unsplash.com/photo-1542826438-bd32f43d626f?auto=format&fit=crop&w=1000&q=80",
+    "https://images.unsplash.com/photo-1488477181946-6428a0291777?auto=format&fit=crop&w=1000&q=80"
 );
 
-function toggleFormDeposit() {
+function getStatusInfo(status) {
+    if (status === 'paid') return { cls: 'paid', label: '🟢 Zaplaceno' };
+    if (status === 'deposit') return { cls: 'deposit', label: '🟠 Záloha' };
+    return { cls: 'unpaid', label: '🔴 Nezaplaceno' };
+}
+
+function toggleNewDepositRow() {
     var st = document.getElementById('orderStatus').value;
-    document.getElementById('formDepositGroup').style.display = (st === 'deposit') ? 'block' : 'none';
-}
-
-function getDateKey(dt) {
-    return dt.getFullYear() + "-" + String(dt.getMonth() + 1).padStart(2, '0') + "-" + String(dt.getDate()).padStart(2, '0');
-}
-
-function sortOrders(list) {
-    return list.sort(function(a, b) {
-        var ta = a.time || "99:99";
-        var tb = b.time || "99:99";
-        return ta.localeCompare(tb);
-    });
+    document.getElementById('newDepositGroup').style.display = (st === 'deposit') ? 'block' : 'none';
 }
 
 function renderCalendar() {
     var y = currentDate.getFullYear();
     var m = currentDate.getMonth();
     document.getElementById('monthYearLabel').textContent = monthsCz.at(m) + " " + y;
-    document.getElementById('bgLayer').style.backgroundImage = "url('" + cakePhotos.at(m) + "')";
+    document.getElementById('bgLayer').style.backgroundImage = "url('" + cakeBackgrounds.at(m) + "')";
+
     var f = new Date(y, m, 1);
     var l = new Date(y, m + 1, 0);
     var s = f.getDay() - 1;
     if (s === -1) s = 6;
+
     var g = document.getElementById('daysGrid');
     g.innerHTML = "";
     var p = new Date(y, m, 0).getDate();
     var t = new Date();
+
     for (var i = s; i > 0; i--) {
-        g.appendChild(createDayCell(y, m - 1, p - i + 1, true));
+        g.appendChild(createDayCell(y, m - 1, p - i + 1, true, false));
     }
     for (var d = 1; d <= l.getDate(); d++) {
         var isToday = (d === t.getDate() && m === t.getMonth() && y === t.getFullYear());
@@ -309,69 +488,82 @@ function renderCalendar() {
     }
     var r = (g.children.length <= 35 ? 35 : 42) - g.children.length;
     for (var d = 1; d <= r; d++) {
-        g.appendChild(createDayCell(y, m + 1, d, true));
+        g.appendChild(createDayCell(y, m + 1, d, true, false));
     }
 }
 
-function createDayCell(y, m, d, o, t) {
+function createDayCell(y, m, d, isOther, isToday) {
     var dt = new Date(y, m, d);
-    var k = getDateKey(dt);
+    var k = dt.getFullYear() + "-" + String(dt.getMonth() + 1).padStart(2, '0') + "-" + String(dt.getDate()).padStart(2, '0');
     var c = document.createElement('div');
-    c.className = "day-cell" + (o ? " other-month" : "") + (t ? " today" : "");
+    c.className = "day-cell" + (isOther ? " other-month" : "") + (isToday ? " today" : "");
     c.onclick = function() { openDayModal(k, dt); };
+
     var n = document.createElement('span');
     n.className = 'day-num';
     n.textContent = dt.getDate();
     c.appendChild(n);
-    var doList = ordersData[k] || [];
-    if (doList.length > 0) {
+
+    var dayOrders = ordersData[k] || [];
+    if (dayOrders.length > 0) {
         var b = document.createElement('div');
-        var st = doList.at(0).status || 'unpaid';
-        var bClass = 'badge-unpaid';
-        if (st === 'deposit') bClass = 'badge-deposit';
-        if (st === 'paid') bClass = 'badge-paid';
-        b.className = 'order-badge ' + bClass;
-        b.textContent = (doList.length === 1) ? doList.at(0).client : (doList.length + " zakázky");
+        var st = dayOrders.at(0).status || 'unpaid';
+        b.className = 'order-badge ' + st;
+        b.textContent = dayOrders.length === 1 ? dayOrders.at(0).client : dayOrders.length + " zakázky";
         c.appendChild(b);
     }
     return c;
 }
 
-function changeMonth(d) { currentDate.setMonth(currentDate.getMonth() + d); renderCalendar(); }
-function goToToday() { currentDate = new Date(); renderCalendar(); }
+function changeMonth(delta) {
+    currentDate.setMonth(currentDate.getMonth() + delta);
+    renderCalendar();
+}
+
+function goToToday() {
+    currentDate = new Date();
+    renderCalendar();
+}
+
+function sortOrdersByTime(list) {
+    list.sort(function(a, b) {
+        var ta = a.time || "99:99";
+        var tb = b.time || "99:99";
+        return ta.localeCompare(tb);
+    });
+}
 
 function openDayModal(k, dt) {
     selectedDateKey = k;
-    document.getElementById('selectedDateTitle').textContent = dt.getDate() + ". " + monthsCz.at(dt.getMonth()).toLowerCase() + " " + dt.getFullYear();
+    document.getElementById('selectedDateTitle').textContent = dt.getDate() + ". " + monthsGenitive.at(dt.getMonth()) + " " + dt.getFullYear();
     renderOrdersList();
     document.getElementById('dayModal').classList.add('active');
 }
 
-function getStatusHtml(st, idx) {
-    if (st === 'paid') return '<button class="status-pill pill-paid" onclick="cycleStatus(' + idx + ')">🟢 Zaplaceno</button>';
-    if (st === 'deposit') return '<button class="status-pill pill-deposit" onclick="cycleStatus(' + idx + ')">🟠 Záloha</button>';
-    return '<button class="status-pill pill-unpaid" onclick="cycleStatus(' + idx + ')">🔴 Nezaplaceno</button>';
-}
-
-function cycleStatus(idx) {
+function cycleOrderStatus(index) {
     var list = ordersData[selectedDateKey];
     if (!list) return;
-    var item = list.at(idx);
-    var cur = item.status || 'unpaid';
-    if (cur === 'unpaid') item.status = 'deposit';
-    else if (cur === 'deposit') item.status = 'paid';
-    else item.status = 'unpaid';
+    var o = list.at(index);
+    var cur = o.status || 'unpaid';
+    if (cur === 'unpaid') {
+        o.status = 'deposit';
+    } else if (cur === 'deposit') {
+        o.status = 'paid';
+    } else {
+        o.status = 'unpaid';
+    }
     localStorage.setItem('bakeMapOrders', JSON.stringify(ordersData));
     renderOrdersList();
     renderCalendar();
 }
-function updateDeposit(idx) {
+
+function updateDepositAmount(index) {
     var list = ordersData[selectedDateKey];
     if (!list) return;
-    var inp = document.getElementById('depInput_' + idx);
+    var inp = document.getElementById('depInput_' + index);
     if (!inp) return;
     var val = Number(inp.value) || 0;
-    list.at(idx).deposit = val;
+    list.at(index).deposit = val;
     localStorage.setItem('bakeMapOrders', JSON.stringify(ordersData));
     renderOrdersList();
     renderCalendar();
@@ -379,120 +571,197 @@ function updateDeposit(idx) {
 
 function renderOrdersList() {
     var l = document.getElementById('ordersList');
-    var doList = ordersData[selectedDateKey] || [];
-    if (doList.length === 0) {
-        l.innerHTML = '<p style="color:var(--text-muted);font-size:14px;text-align:center;padding:10px 0">Na tento den zatím nejsou žádné zakázky.</p>';
+    var dayOrders = ordersData[selectedDateKey] || [];
+    if (dayOrders.length === 0) {
+        l.innerHTML = '<p style="color:var(--mut);font-size:14px;text-align:center;padding:10px 0">Na tento den zatím nejsou žádné zakázky.</p>';
         return;
     }
-    sortOrders(doList);
+    sortOrdersByTime(dayOrders);
     var h = "";
-    for (var i = 0; i < doList.length; i++) {
-        var o = doList.at(i);
+    for (var i = 0; i < dayOrders.length; i++) {
+        var o = dayOrders.at(i);
         var pr = Number(o.price) || 0;
         var dep = Number(o.deposit) || 0;
-        var st = o.status || 'unpaid';
-        h += '<div class="order-item st-' + st + '">';
+        var st = getStatusInfo(o.status || 'unpaid');
+
+        h += '<div class="order-item ' + st.cls + '">';
         h += '<div class="order-top"><div class="order-client">👤 ' + escapeHtml(o.client) + '</div><button class="delete-btn" onclick="deleteOrder(' + i + ')">Smazat</button></div>';
         if (o.time) h += '<div class="order-time">🕒 Vyzvednutí: ' + escapeHtml(o.time) + '</div>';
         h += '<div class="order-product">🎂 ' + escapeHtml(o.product) + '</div>';
-        h += '<div class="order-meta">';
-        h += (pr > 0) ? '<div class="order-price">💵 Cena: ' + pr.toLocaleString('cs-CZ') + ' Kč</div>' : '<div></div>';
-        h += getStatusHtml(st, i);
+        
+        h += '<div class="order-meta-row">';
+        h += '<div class="order-price">' + (pr > 0 ? '💵 ' + pr.toLocaleString('cs-CZ') + ' Kč' : '<span style="color:var(--mut);font-size:13px">Cena neuvedena</span>') + '</div>';
+        h += '<button class="status-pill ' + st.cls + '" onclick="cycleOrderStatus(' + i + ')" title="Kliknutím změníte stav">' + st.label + '</button>';
         h += '</div>';
-        if (st === 'deposit') {
+
+        if ((o.status || 'unpaid') === 'deposit') {
             var rem = Math.max(0, pr - dep);
             h += '<div class="deposit-box">';
-            h += '<div class="deposit-row">';
-            h += '<div><div class="deposit-info">Složená záloha: ' + dep.toLocaleString('cs-CZ') + ' Kč</div>';
-            if (pr > 0) h += '<div class="deposit-sub">Zbývá doplatit: ' + rem.toLocaleString('cs-CZ') + ' Kč</div>';
-            h += '</div>';
-            h += '<div class="deposit-edit"><input type="number" id="depInput_' + i + '" value="' + dep + '" min="0" step="1"><button onclick="updateDeposit(' + i + ')">Uložit</button></div>';
+            h += '<div class="deposit-box-title"><span>Složená záloha (Kč)</span>' + (pr > 0 ? '<span>Doplatek: ' + rem.toLocaleString('cs-CZ') + ' Kč</span>' : '') + '</div>';
+            h += '<div class="deposit-edit-row">';
+            h += '<input type="number" id="depInput_' + i + '" value="' + (dep > 0 ? dep : '') + '" placeholder="Zadejte částku..." min="0" step="1">';
+            h += '<button type="button" class="deposit-save-btn" onclick="updateDepositAmount(' + i + ')">Uložit</button>';
             h += '</div></div>';
         }
+
         if (o.notes) h += '<div class="order-notes">' + escapeHtml(o.notes) + '</div>';
         if (o.photo) h += '<img src="' + o.photo + '" class="order-img" onclick="viewImage(this.src)">';
         h += '</div>';
     }
     l.innerHTML = h;
 }
+    function openSearchModal() {
+    document.getElementById('searchInput').value = "";
+    runSearch();
+    document.getElementById('searchModal').classList.add('active');
+    setTimeout(function() { document.getElementById('searchInput').focus(); }, 100);
+}
+
+function runSearch() {
+    var q = document.getElementById('searchInput').value.trim().toLowerCase();
+    var resEl = document.getElementById('searchResults');
+    var keys = Object.keys(ordersData).sort().reverse();
+    var matches = [];
+
+    for (var i = 0; i < keys.length; i++) {
+        var dk = keys.at(i);
+        var list = ordersData[dk] || [];
+        for (var j = 0; j < list.length; j++) {
+            var o = list.at(j);
+            var text = ((o.client || "") + " " + (o.product || "") + " " + (o.notes || "")).toLowerCase();
+            if (q === "" || text.indexOf(q) !== -1) {
+                matches.push({ dateKey: dk, order: o });
+            }
+        }
+    }
+
+    if (matches.length === 0) {
+        resEl.innerHTML = '<p style="color:var(--mut);font-size:14px;text-align:center;padding:20px 0">Žádná odpovídající zakázka nenalezena.</p>';
+        return;
+    }
+
+    var h = "";
+    for (var m = 0; m < matches.length; m++) {
+        var item = matches.at(m);
+        var parts = item.dateKey.split("-");
+        var dtObj = new Date(Number(parts.at(0)), Number(parts.at(1)) - 1, Number(parts.at(2)));
+        var dateLabel = dtObj.getDate() + ". " + monthsGenitive.at(dtObj.getMonth()) + " " + dtObj.getFullYear();
+        var o = item.order;
+        var st = getStatusInfo(o.status || 'unpaid');
+        var pr = Number(o.price) || 0;
+
+        h += '<div class="search-result-item ' + st.cls + '" onclick="jumpToDate('' + item.dateKey + '')">';
+        h += '<div class="search-date-tag"><span>📅 ' + dateLabel + (o.time ? ' • 🕒 ' + escapeHtml(o.time) : '') + '</span><span>' + st.label + '</span></div>';
+        h += '<div style="font-weight:800;font-size:15px">👤 ' + escapeHtml(o.client) + (pr > 0 ? ' – ' + pr.toLocaleString('cs-CZ') + ' Kč' : '') + '</div>';
+        h += '<div style="color:var(--pri);font-weight:700;font-size:13px;margin-top:2px">🎂 ' + escapeHtml(o.product) + '</div>';
+        if (o.notes) h += '<div style="font-size:12px;color:var(--mut);margin-top:3px">' + escapeHtml(o.notes) + '</div>';
+        h += '</div>';
+    }
+    resEl.innerHTML = h;
+}
+
+function jumpToDate(dateKey) {
+    closeModal('searchModal');
+    var parts = dateKey.split("-");
+    var dtObj = new Date(Number(parts.at(0)), Number(parts.at(1)) - 1, Number(parts.at(2)));
+    currentDate = new Date(dtObj.getFullYear(), dtObj.getMonth(), 1);
+    renderCalendar();
+    openDayModal(dateKey, dtObj);
+}
 
 function openWeekModal() {
-    var wl = document.getElementById('weekList');
-    var h = "";
+    var listEl = document.getElementById('weekList');
     var base = new Date();
-    var found = false;
-    for (var i = 0; i < 7; i++) {
-        var dt = new Date(base.getFullYear(), base.getMonth(), base.getDate() + i);
-        var k = getDateKey(dt);
-        var list = ordersData[k] || [];
-        if (list.length > 0) {
-            found = true;
-            sortOrders(list);
-            var dayLabel = (i === 0 ? "Dnes – " : (i === 1 ? "Zítra – " : "")) + dt.getDate() + ". " + monthsCz.at(dt.getMonth()).toLowerCase();
+    var h = "";
+    var foundAny = false;
+
+    for (var offset = 0; offset < 7; offset++) {
+        var d = new Date(base.getFullYear(), base.getMonth(), base.getDate() + offset);
+        var k = d.getFullYear() + "-" + String(d.getMonth() + 1).padStart(2, '0') + "-" + String(d.getDate()).padStart(2, '0');
+        var dayOrders = ordersData[k] || [];
+        if (dayOrders.length > 0) {
+            foundAny = true;
+            sortOrdersByTime(dayOrders);
+            var dayLabel = d.getDate() + ". " + monthsGenitive.at(d.getMonth());
+            if (offset === 0) dayLabel += " (Dnes)";
+            if (offset === 1) dayLabel += " (Zítra)";
+
             h += '<div class="week-day-group"><div class="week-day-title">' + dayLabel + '</div>';
-            for (var j = 0; j < list.length; j++) {
-                var o = list.at(j);
-                var st = o.status || 'unpaid';
-                h += '<div class="order-item st-' + st + '" style="margin-bottom:8px;padding:10px 12px">';
-                h += '<div style="display:flex;justify-content:space-between;font-weight:700;font-size:14px"><span>' + (o.time ? '🕒 ' + escapeHtml(o.time) + ' – ' : '') + escapeHtml(o.client) + '</span><span>' + (o.price ? Number(o.price).toLocaleString('cs-CZ') + ' Kč' : '') + '</span></div>';
-                h += '<div style="color:var(--primary);font-weight:600;font-size:13px;margin-top:2px">🎂 ' + escapeHtml(o.product) + '</div>';
-                if (o.notes) h += '<div style="font-size:12px;color:var(--text-muted);margin-top:4px">' + escapeHtml(o.notes) + '</div>';
+            for (var i = 0; i < dayOrders.length; i++) {
+                var o = dayOrders.at(i);
+                var st = getStatusInfo(o.status || 'unpaid');
+                var pr = Number(o.price) || 0;
+                h += '<div class="week-item ' + st.cls + '">';
+                h += '<div style="display:flex;justify-content:space-between;font-weight:700;font-size:14px">';
+                h += '<span>' + (o.time ? '🕒 ' + escapeHtml(o.time) + ' – ' : '') + escapeHtml(o.client) + '</span>';
+                h += '<span>' + (pr > 0 ? pr.toLocaleString('cs-CZ') + ' Kč' : '') + '</span></div>';
+                h += '<div style="color:var(--pri);font-weight:700;font-size:13px;margin-top:2px">🎂 ' + escapeHtml(o.product) + '</div>';
+                if (o.notes) h += '<div style="font-size:12px;color:#524042;margin-top:3px">' + escapeHtml(o.notes) + '</div>';
                 h += '</div>';
             }
             h += '</div>';
         }
     }
-    if (!found) {
-        h = '<p style="color:var(--text-muted);font-size:14px;text-align:center;padding:20px 0">Na nejbližších 7 dní nejsou naplánované žádné zakázky.</p>';
+
+    if (!foundAny) {
+        h = '<p style="color:var(--mut);font-size:14px;text-align:center;padding:20px 0">Na nejbližších 7 dní nejsou naplánovány žádné zakázky.</p>';
     }
-    wl.innerHTML = h;
+    listEl.innerHTML = h;
     document.getElementById('weekModal').classList.add('active');
 }
-
-function openStatsModal() {
+    function openStatsModal() {
     var ty = String(currentDate.getFullYear());
     var mp = ty + "-" + String(currentDate.getMonth() + 1).padStart(2, '0');
-    var ms = 0, mPaid = 0, mUnpaid = 0;
-    var ys = 0, yPaid = 0, yUnpaid = 0;
+    var ms = 0, mPaid = 0, mUnpaid = 0, mc = 0;
+    var ys = 0, yPaid = 0, yUnpaid = 0, yc = 0;
     var ks = Object.keys(ordersData);
+
     for (var k = 0; k < ks.length; k++) {
         var dk = ks.at(k);
         var dl = ordersData[dk] || [];
         if (dk.startsWith(ty + "-")) {
             for (var j = 0; j < dl.length; j++) {
-                var item = dl.at(j);
-                var p = Number(item.price) || 0;
-                var dep = Number(item.deposit) || 0;
-                var st = item.status || 'unpaid';
-                var paidAmt = 0;
-                var unpaidAmt = 0;
+                var o = dl.at(j);
+                var p = Number(o.price) || 0;
+                var dep = Number(o.deposit) || 0;
+                var st = o.status || 'unpaid';
+                var paidPart = 0;
+                var unpaidPart = 0;
+
                 if (st === 'paid') {
-                    paidAmt = p;
+                    paidPart = p;
                 } else if (st === 'deposit') {
-                    paidAmt = dep;
-                    unpaidAmt = Math.max(0, p - dep);
+                    paidPart = dep;
+                    unpaidPart = Math.max(0, p - dep);
                 } else {
-                    unpaidAmt = p;
+                    unpaidPart = p;
                 }
-                ys += p;
-                yPaid += paidAmt;
-                yUnpaid += unpaidAmt;
+
+                ys += p; yc++;
+                yPaid += paidPart;
+                yUnpaid += unpaidPart;
+
                 if (dk.startsWith(mp)) {
-                    ms += p;
-                    mPaid += paidAmt;
-                    mUnpaid += unpaidAmt;
+                    ms += p; mc++;
+                    mPaid += paidPart;
+                    mUnpaid += unpaidPart;
                 }
             }
         }
     }
+
     document.getElementById('monthStatLabel').textContent = "Tržby: " + monthsCz.at(currentDate.getMonth()) + " " + ty;
     document.getElementById('monthStatValue').textContent = ms.toLocaleString('cs-CZ') + " Kč";
-    document.getElementById('monthPaid').textContent = "Zaplaceno + zálohy: " + mPaid.toLocaleString('cs-CZ') + " Kč";
-    document.getElementById('monthUnpaid').textContent = "Zbývá doplatit: " + mUnpaid.toLocaleString('cs-CZ') + " Kč";
+    document.getElementById('monthStatCount').textContent = "Počet zakázek v měsíci: " + mc;
+    document.getElementById('monthPaidText').textContent = "Vybráno: " + mPaid.toLocaleString('cs-CZ') + " Kč";
+    document.getElementById('monthUnpaidText').textContent = "Zbývá vybrat: " + mUnpaid.toLocaleString('cs-CZ') + " Kč";
+
     document.getElementById('yearStatLabel').textContent = "Celkové tržby za rok " + ty;
     document.getElementById('yearStatValue').textContent = ys.toLocaleString('cs-CZ') + " Kč";
-    document.getElementById('yearPaid').textContent = "Zaplaceno + zálohy: " + yPaid.toLocaleString('cs-CZ') + " Kč";
-    document.getElementById('yearUnpaid').textContent = "Zbývá doplatit: " + yUnpaid.toLocaleString('cs-CZ') + " Kč";
+    document.getElementById('yearStatCount').textContent = "Počet zakázek v roce: " + yc;
+    document.getElementById('yearPaidText').textContent = "Vybráno: " + yPaid.toLocaleString('cs-CZ') + " Kč";
+    document.getElementById('yearUnpaidText').textContent = "Zbývá vybrat: " + yUnpaid.toLocaleString('cs-CZ') + " Kč";
+
     document.getElementById('statsModal').classList.add('active');
 }
 
@@ -519,18 +788,20 @@ async function saveOrder(e) {
     e.preventDefault();
     var client = document.getElementById('clientName').value.trim();
     var product = document.getElementById('productType').value.trim();
-    var time = document.getElementById('pickupTime').value;
+    var time = document.getElementById('pickupTime').value.trim();
     var pv = document.getElementById('orderPrice').value.trim();
     var price = pv ? Number(pv) : 0;
     var status = document.getElementById('orderStatus').value;
-    var dv = document.getElementById('orderDeposit').value.trim();
+    var dv = document.getElementById('newDepositAmount').value.trim();
     var deposit = (status === 'deposit' && dv) ? Number(dv) : 0;
     var notes = document.getElementById('orderNotes').value.trim();
     var pIn = document.getElementById('orderPhoto');
     var photo = null;
+
     if (pIn.files && pIn.files.item(0)) {
         photo = await compressImage(pIn.files.item(0));
     }
+
     if (!ordersData[selectedDateKey]) ordersData[selectedDateKey] = new Array();
     ordersData[selectedDateKey].push({
         client: client,
@@ -542,14 +813,14 @@ async function saveOrder(e) {
         notes: notes,
         photo: photo
     });
+
     localStorage.setItem('bakeMapOrders', JSON.stringify(ordersData));
     document.getElementById('orderForm').reset();
-    toggleFormDeposit();
+    toggleNewDepositRow();
     renderOrdersList();
     renderCalendar();
-}
-
-function deleteOrder(i) {
+    }
+    function deleteOrder(i) {
     if (confirm("Smazat zakázku?")) {
         ordersData[selectedDateKey].splice(i, 1);
         if (ordersData[selectedDateKey].length === 0) delete ordersData[selectedDateKey];
@@ -559,7 +830,11 @@ function deleteOrder(i) {
     }
 }
 
-function viewImage(s) { document.getElementById('fullImg').src = s; document.getElementById('imgViewer').classList.add('active'); }
+function viewImage(s) {
+    document.getElementById('fullImg').src = s;
+    document.getElementById('imgViewer').classList.add('active');
+}
+
 function openBackupModal() { document.getElementById('backupModal').classList.add('active'); }
 function closeModal(id) { document.getElementById(id).classList.remove('active'); }
 function closeModalOnBg(e, id) { if (e.target.id === id) closeModal(id); }
