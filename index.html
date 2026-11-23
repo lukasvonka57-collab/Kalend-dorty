@@ -3,20 +3,23 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>BakeMap – Plánovač zakázek a pečení</title>
+<title>BakeMap – Plánovač zakázek</title>
 <style>
 :root {
     --bg-base: #fdf6f0;
-    --card-bg: rgba(255, 255, 255, 0.88);
+    --card-bg: rgba(255, 255, 255, 0.86);
+    --card-solid: #ffffff;
     --primary: #c2593f;
-    --primary-hover: #a84730;
-    --primary-light: #fae6df;
-    --text-main: #2d1e17;
-    --text-muted: #7a6256;
-    --border: rgba(194, 89, 63, 0.2);
-    --status-unpaid: #ef4444;
-    --status-deposit: #f59e0b;
-    --status-paid: #10b981;
+    --primary-light: #fae6e0;
+    --text-main: #2d1e1a;
+    --text-muted: #7a635d;
+    --border: rgba(194, 89, 63, 0.18);
+    --red: #dc2626;
+    --red-bg: #fee2e2;
+    --orange: #d97706;
+    --orange-bg: #fef3c7;
+    --green: #059669;
+    --green-bg: #d1fae5;
 }
 * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
 body {
@@ -28,313 +31,98 @@ body {
     min-height: 100vh;
     padding: 16px;
     position: relative;
+    overflow-x: hidden;
 }
-.bg-photo {
+#bgLayer {
     position: fixed;
     inset: 0;
     background-size: cover;
     background-position: center;
     opacity: 0.16;
     z-index: -1;
-    transition: background-image 0.5s ease-in-out;
+    transition: background-image 0.6s ease-in-out;
+    pointer-events: none;
 }
-header {
-    width: 100%;
-    max-width: 500px;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 16px;
-}
-.icon-btn {
-    background: var(--card-bg);
-    backdrop-filter: blur(8px);
-    border: 1px solid var(--border);
-    border-radius: 14px;
-    width: 44px;
-    height: 44px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 20px;
-    cursor: pointer;
-    box-shadow: 0 2px 8px rgba(45, 30, 23, 0.06);
-}
+header { width: 100%; max-width: 500px; display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; }
+.icon-btn { background: var(--card-bg); backdrop-filter: blur(10px); border: 1px solid var(--border); border-radius: 14px; width: 44px; height: 44px; display: flex; align-items: center; justify-content: center; font-size: 20px; cursor: pointer; box-shadow: 0 2px 8px rgba(45,30,26,0.06); }
 .title-box { text-align: center; }
 .title-box h1 { color: var(--primary); font-size: 26px; font-weight: 800; letter-spacing: -0.5px; }
 .title-box p { color: var(--text-muted); font-size: 13px; font-weight: 500; }
-.calendar-card {
-    background: var(--card-bg);
-    backdrop-filter: blur(12px);
-    border: 1px solid var(--border);
-    width: 100%;
-    max-width: 500px;
-    border-radius: 22px;
-    padding: 18px;
-    box-shadow: 0 8px 24px rgba(45, 30, 23, 0.08);
-}
-.month-nav {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 16px;
-}
+.calendar-card { background: var(--card-bg); backdrop-filter: blur(12px); width: 100%; max-width: 500px; border-radius: 24px; padding: 18px; border: 1px solid var(--border); box-shadow: 0 8px 24px rgba(45,30,26,0.08); }
+.month-nav { display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; }
 .month-nav h2 { font-size: 20px; font-weight: 800; color: var(--text-main); }
-.nav-arrows button {
-    background: var(--primary-light);
-    color: var(--primary);
-    border: none;
-    border-radius: 12px;
-    width: 38px;
-    height: 38px;
-    font-size: 18px;
-    font-weight: 800;
-    cursor: pointer;
-    margin-left: 6px;
-}
-.weekdays {
-    display: grid;
-    grid-template-columns: repeat(7, 1fr);
-    text-align: center;
-    font-size: 12px;
-    font-weight: 700;
-    color: var(--text-muted);
-    margin-bottom: 10px;
-}
-.days-grid {
-    display: grid;
-    grid-template-columns: repeat(7, 1fr);
-    gap: 6px;
-}
-.day-cell {
-    aspect-ratio: 1 / 1.18;
-    border-radius: 12px;
-    border: 1px solid transparent;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: space-between;
-    padding: 6px 2px;
-    cursor: pointer;
-    background: rgba(255, 255, 255, 0.7);
-    transition: transform 0.1s;
-}
-.day-cell:active { transform: scale(0.96); }
+.nav-arrows button { background: var(--primary-light); color: var(--primary); border: none; border-radius: 12px; width: 38px; height: 38px; font-size: 18px; font-weight: 800; cursor: pointer; margin-left: 6px; }
+.weekdays { display: grid; grid-template-columns: repeat(7, 1fr); text-align: center; font-size: 12px; font-weight: 700; color: var(--text-muted); margin-bottom: 10px; }
+.days-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 6px; }
+.day-cell { aspect-ratio: 1 / 1.18; border-radius: 14px; border: 1px solid transparent; display: flex; flex-direction: column; align-items: center; justify-content: space-between; padding: 6px 2px; cursor: pointer; background: rgba(255,255,255,0.65); transition: 0.15s; }
+.day-cell:hover { background: var(--primary-light); }
 .day-cell.other-month { opacity: 0.35; }
-.day-cell.today { border: 2px solid var(--primary); background: var(--primary-light); }
+.day-cell.today { border: 2px solid var(--primary); background: #fff8f5; }
 .day-num { font-size: 15px; font-weight: 700; }
-.order-badge {
-    color: #fff;
-    font-size: 10px;
-    font-weight: 700;
-    padding: 2px 4px;
-    border-radius: 6px;
-    width: 92%;
-    text-align: center;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-}
-.action-row {
-    width: 100%;
-    max-width: 500px;
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 10px;
-    margin-top: 14px;
-}
-.action-btn {
-    background: var(--card-bg);
-    backdrop-filter: blur(8px);
-    border: 1px solid var(--border);
-    color: var(--text-main);
-    padding: 14px 10px;
-    border-radius: 16px;
-    font-size: 14px;
-    font-weight: 700;
-    cursor: pointer;
-    box-shadow: 0 4px 12px rgba(45, 30, 23, 0.05);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 6px;
-}
-.action-btn.highlight {
-    background: var(--primary-light);
-    color: var(--primary);
-}
-.modal-overlay {
-    position: fixed;
-    inset: 0;
-    background: rgba(45, 30, 23, 0.55);
-    backdrop-filter: blur(3px);
-    display: none;
-    align-items: flex-end;
-    justify-content: center;
-    z-index: 100;
-}
+.order-badge { color: #fff; font-size: 10px; font-weight: 700; padding: 2px 4px; border-radius: 6px; width: 92%; text-align: center; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.badge-unpaid { background: var(--red); }
+.badge-deposit { background: var(--orange); }
+.badge-paid { background: var(--green); }
+.action-row { width: 100%; max-width: 500px; display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 14px; }
+.action-btn { background: var(--card-bg); backdrop-filter: blur(10px); border: 1px solid var(--border); color: var(--text-main); padding: 14px 10px; border-radius: 16px; font-size: 14px; font-weight: 700; cursor: pointer; box-shadow: 0 4px 12px rgba(45,30,26,0.06); display: flex; align-items: center; justify-content: center; gap: 6px; }
+.action-btn.primary-action { background: var(--primary-light); color: var(--primary); }
+.modal-overlay { position: fixed; inset: 0; background: rgba(45,30,26,0.55); display: none; align-items: flex-end; justify-content: center; z-index: 100; }
 .modal-overlay.active { display: flex; }
-.modal-content {
-    background: #fffdfb;
-    width: 100%;
-    max-width: 500px;
-    max-height: 90vh;
-    border-radius: 24px 24px 0 0;
-    padding: 20px;
-    overflow-y: auto;
-}
-.modal-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 16px;
-    padding-bottom: 12px;
-    border-bottom: 1px solid var(--border);
-}
-.close-btn {
-    background: var(--primary-light);
-    color: var(--primary);
-    border: none;
-    border-radius: 50%;
-    width: 34px;
-    height: 34px;
-    font-size: 18px;
-    font-weight: 700;
-    cursor: pointer;
-}
-.order-item {
-    background: #fdf6f0;
-    border-radius: 14px;
-    padding: 14px;
-    margin-bottom: 12px;
-    border-left: 5px solid var(--primary);
-}
-.order-top {
-    display: flex;
-    justify-content: space-between;
-    align-items: flex-start;
-    margin-bottom: 6px;
-}
+.modal-content { background: var(--card-solid); width: 100%; max-width: 500px; max-height: 92vh; border-radius: 26px 26px 0 0; padding: 20px; overflow-y: auto; }
+.modal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; padding-bottom: 12px; border-bottom: 1px solid var(--border); }
+.close-btn { background: var(--primary-light); color: var(--primary); border: none; border-radius: 50%; width: 34px; height: 34px; font-size: 18px; font-weight: bold; cursor: pointer; }
+.order-item { background: #fdf8f5; border-radius: 16px; padding: 14px; margin-bottom: 12px; border-left: 5px solid var(--primary); }
+.order-item.st-unpaid { border-left-color: var(--red); }
+.order-item.st-deposit { border-left-color: var(--orange); }
+.order-item.st-paid { border-left-color: var(--green); }
+.order-top { display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px; }
 .order-client { font-weight: 800; font-size: 16px; }
-.order-time {
-    display: inline-block;
-    background: var(--primary-light);
-    color: var(--primary);
-    font-size: 12px;
-    font-weight: 700;
-    padding: 2px 8px;
-    border-radius: 6px;
-    margin-bottom: 6px;
-}
+.order-time { display: inline-block; background: var(--primary-light); color: var(--primary); font-size: 12px; font-weight: 700; padding: 2px 8px; border-radius: 8px; margin-bottom: 6px; }
 .order-product { color: var(--primary); font-weight: 700; font-size: 14px; margin-bottom: 6px; }
-.order-meta {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 6px;
-    flex-wrap: wrap;
-    gap: 6px;
-}
-.order-price { font-weight: 800; font-size: 15px; color: var(--text-main); }
-.status-pill {
-    border: none;
-    color: #fff;
-    font-size: 12px;
-    font-weight: 700;
-    padding: 4px 10px;
-    border-radius: 20px;
-    cursor: pointer;
-}
-.order-notes { font-size: 13px; color: var(--text-muted); white-space: pre-line; margin-bottom: 8px; }
-.order-img { width: 100%; max-height: 220px; object-fit: cover; border-radius: 10px; margin-top: 6px; cursor: pointer; }
-.delete-btn {
-    background: #fee2e2;
-    color: var(--status-unpaid);
-    border: none;
-    padding: 4px 10px;
-    border-radius: 8px;
-    font-size: 12px;
-    font-weight: 700;
-    cursor: pointer;
-}
+.order-meta { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 8px; margin-bottom: 6px; }
+.order-price { color: var(--text-main); font-weight: 800; font-size: 15px; }
+.deposit-box { background: var(--orange-bg); border: 1px solid rgba(217,119,6,0.3); border-radius: 12px; padding: 10px 12px; margin: 8px 0; }
+.deposit-row { display: flex; justify-content: space-between; align-items: center; gap: 8px; flex-wrap: wrap; }
+.deposit-info { font-size: 13px; color: #92400e; font-weight: 700; }
+.deposit-sub { font-size: 12px; color: #b45309; margin-top: 2px; }
+.deposit-edit { display: flex; align-items: center; gap: 6px; }
+.deposit-edit input { width: 95px; padding: 6px 8px; border: 1px solid #f59e0b; border-radius: 8px; font-size: 13px; font-weight: 700; background: #fff; }
+.deposit-edit button { background: var(--orange); color: #fff; border: none; padding: 6px 10px; border-radius: 8px; font-size: 12px; font-weight: 700; cursor: pointer; }
+.status-pill { border: none; padding: 5px 11px; border-radius: 20px; font-size: 12px; font-weight: 700; cursor: pointer; }
+.pill-unpaid { background: var(--red-bg); color: var(--red); }
+.pill-deposit { background: var(--orange-bg); color: var(--orange); }
+.pill-paid { background: var(--green-bg); color: var(--green); }
+.order-notes { font-size: 13px; white-space: pre-line; margin-bottom: 8px; color: var(--text-muted); }
+.order-img { width: 100%; max-height: 220px; object-fit: cover; border-radius: 12px; margin-top: 6px; cursor: pointer; }
+.delete-btn { background: var(--red-bg); color: var(--red); border: none; padding: 5px 10px; border-radius: 8px; font-size: 12px; font-weight: 700; cursor: pointer; }
+.form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
 .form-group { margin-bottom: 12px; }
-.form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 12px; }
-.form-group label, .form-row label {
-    display: block;
-    font-size: 13px;
-    font-weight: 700;
-    margin-bottom: 4px;
-    color: var(--text-muted);
-}
-input, textarea, select {
-    width: 100%;
-    padding: 10px 12px;
-    border: 1px solid var(--border);
-    border-radius: 10px;
-    font-size: 14px;
-    background: #fff;
-    color: var(--text-main);
-}
-.btn-primary {
-    background: var(--primary);
-    color: #fff;
-    border: none;
-    width: 100%;
-    padding: 13px;
-    border-radius: 12px;
-    font-size: 15px;
-    font-weight: 700;
-    cursor: pointer;
-    margin-top: 6px;
-}
-.section-divider { margin: 18px 0 12px; font-size: 15px; font-weight: 800; color: var(--primary); }
-.stat-box {
-    background: #fdf6f0;
-    border-radius: 14px;
-    padding: 14px 16px;
-    margin-bottom: 10px;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-}
-.stat-label { font-size: 14px; font-weight: 700; color: var(--text-main); }
-.stat-sub { font-size: 12px; color: var(--text-muted); margin-top: 2px; }
-.stat-val { font-size: 18px; font-weight: 800; }
-.week-day-group { margin-bottom: 16px; }
-.week-day-title {
-    font-size: 14px;
-    font-weight: 800;
-    color: var(--primary);
-    margin-bottom: 6px;
-    padding-bottom: 4px;
-    border-bottom: 1px dashed var(--border);
-}
-.img-viewer {
-    position: fixed;
-    inset: 0;
-    background: rgba(0, 0, 0, 0.9);
-    display: none;
-    align-items: center;
-    justify-content: center;
-    z-index: 200;
-    padding: 20px;
-}
+.form-group label { display: block; font-size: 13px; font-weight: 700; margin-bottom: 4px; color: var(--text-muted); }
+.form-group input, .form-group textarea, .form-group select { width: 100%; padding: 10px 12px; border: 1px solid var(--border); border-radius: 12px; font-size: 14px; background: #fff; }
+.btn-primary { background: var(--primary); color: #fff; border: none; width: 100%; padding: 14px; border-radius: 14px; font-size: 15px; font-weight: 700; cursor: pointer; margin-top: 6px; }
+.section-divider { margin: 18px 0 12px; font-size: 16px; font-weight: 800; color: var(--primary); }
+.stat-box { background: #fdf8f5; border: 1px solid var(--border); border-radius: 16px; padding: 16px; margin-bottom: 12px; }
+.stat-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; }
+.stat-label { font-size: 14px; color: var(--text-muted); font-weight: 700; }
+.stat-val { font-size: 22px; font-weight: 800; color: var(--primary); }
+.stat-breakdown { display: flex; justify-content: space-between; font-size: 13px; padding-top: 8px; border-top: 1px dashed var(--border); }
+.week-day-group { margin-bottom: 14px; }
+.week-day-title { font-size: 14px; font-weight: 800; color: var(--primary); margin-bottom: 6px; padding-bottom: 4px; border-bottom: 1px solid var(--border); }
+.img-viewer { position: fixed; inset: 0; background: rgba(0,0,0,0.9); display: none; align-items: center; justify-content: center; z-index: 200; padding: 20px; }
 .img-viewer.active { display: flex; }
 .img-viewer img { max-width: 100%; max-height: 100%; border-radius: 12px; }
 </style>
 </head>
 <body>
-<div class="bg-photo" id="bgPhoto"></div>
-
+<div id="bgLayer"></div>
 <header>
-    <button class="icon-btn" onclick="openModal('backupModal')" title="Záloha dat">⚙️</button>
+    <button class="icon-btn" onclick="openBackupModal()">⚙️</button>
     <div class="title-box">
         <h1>BakeMap</h1>
         <p>Plánovač zakázek a pečení</p>
     </div>
-    <button class="icon-btn" onclick="goToToday()" title="Dnešní den">📅</button>
+    <button class="icon-btn" onclick="goToToday()">📅</button>
 </header>
-
 <div class="calendar-card">
     <div class="month-nav">
         <h2 id="monthYearLabel"></h2>
@@ -348,13 +136,12 @@ input, textarea, select {
     </div>
     <div class="days-grid" id="daysGrid"></div>
 </div>
-
 <div class="action-row">
     <button class="action-btn" onclick="openWeekModal()">📋 Plán na 7 dní</button>
-    <button class="action-btn highlight" onclick="openStatsModal()">💰 Přehled tržeb</button>
+    <button class="action-btn primary-action" onclick="openStatsModal()">💰 Přehled tržeb</button>
 </div>
 
-<div class="modal-overlay" id="dayModal" onclick="closeModalOnBg(event, 'dayModal')">
+<div class="modal-overlay" id="dayModal" onclick="closeModalOnBg(event,'dayModal')">
     <div class="modal-content">
         <div class="modal-header">
             <h3 id="selectedDateTitle"></h3>
@@ -372,26 +159,30 @@ input, textarea, select {
                 <input type="text" id="productType" placeholder="Např. Čokoládový dort" required>
             </div>
             <div class="form-row">
-                <div>
+                <div class="form-group">
                     <label>Čas vyzvednutí</label>
-                    <input type="time" id="orderTime">
+                    <input type="time" id="pickupTime">
                 </div>
-                <div>
-                    <label>Cena (Kč)</label>
-                    <input type="number" id="orderPrice" placeholder="Např. 1200" min="0" step="1">
+                <div class="form-group">
+                    <label>Celková cena (Kč)</label>
+                    <input type="number" id="orderPrice" placeholder="1200" min="0" step="1">
                 </div>
             </div>
             <div class="form-group">
-                <label>Stav platby a zakázky</label>
-                <select id="orderStatus">
+                <label>Stav platby</label>
+                <select id="orderStatus" onchange="toggleFormDeposit()">
                     <option value="unpaid">🔴 Nezaplaceno</option>
-                    <option value="deposit">🟠 Záloha zaplacena</option>
+                    <option value="deposit">🟠 Záloha</option>
                     <option value="paid">🟢 Zaplaceno / Hotovo</option>
                 </select>
             </div>
+            <div class="form-group" id="formDepositGroup" style="display:none;">
+                <label>Výše složené zálohy (Kč)</label>
+                <input type="number" id="orderDeposit" placeholder="Např. 500" min="0" step="1">
+            </div>
             <div class="form-group">
                 <label>Požadavky a detaily</label>
-                <textarea id="orderNotes" rows="3" placeholder="Bez ořechů, nápis na dort, alergeny..."></textarea>
+                <textarea id="orderNotes" rows="3" placeholder="Bez ořechů, nápis na dort..."></textarea>
             </div>
             <div class="form-group">
                 <label>Referenční fotka</label>
@@ -402,7 +193,7 @@ input, textarea, select {
     </div>
 </div>
 
-<div class="modal-overlay" id="weekModal" onclick="closeModalOnBg(event, 'weekModal')">
+<div class="modal-overlay" id="weekModal" onclick="closeModalOnBg(event,'weekModal')">
     <div class="modal-content">
         <div class="modal-header">
             <h3>📋 Plán na nejbližších 7 dní</h3>
@@ -412,125 +203,105 @@ input, textarea, select {
     </div>
 </div>
 
-<div class="modal-overlay" id="statsModal" onclick="closeModalOnBg(event, 'statsModal')">
+<div class="modal-overlay" id="statsModal" onclick="closeModalOnBg(event,'statsModal')">
     <div class="modal-content">
         <div class="modal-header">
             <h3>💰 Přehled tržeb</h3>
             <button class="close-btn" onclick="closeModal('statsModal')">✕</button>
         </div>
         <div class="stat-box">
-            <div>
-                <div class="stat-label" id="monthStatLabel">Tržby za měsíc</div>
-                <div class="stat-sub" id="monthStatSub">0 zakázek</div>
+            <div class="stat-header">
+                <div class="stat-label" id="monthStatLabel">Měsíc</div>
+                <div class="stat-val" id="monthStatValue">0 Kč</div>
             </div>
-            <div class="stat-val" id="monthStatValue" style="color: var(--primary);">0 Kč</div>
+            <div class="stat-breakdown">
+                <span style="color:var(--green);font-weight:700" id="monthPaid">Zaplaceno + zálohy: 0 Kč</span>
+                <span style="color:var(--red);font-weight:700" id="monthUnpaid">Zbývá doplatit: 0 Kč</span>
+            </div>
         </div>
         <div class="stat-box">
-            <div>
-                <div class="stat-label">🟢 Už zaplaceno (měsíc)</div>
-                <div class="stat-sub">Uhrazené zakázky</div>
+            <div class="stat-header">
+                <div class="stat-label" id="yearStatLabel">Rok</div>
+                <div class="stat-val" id="yearStatValue">0 Kč</div>
             </div>
-            <div class="stat-val" id="monthPaidValue" style="color: var(--status-paid);">0 Kč</div>
-        </div>
-        <div class="stat-box">
-            <div>
-                <div class="stat-label">🔴 Zbývá vybrat (měsíc)</div>
-                <div class="stat-sub">Nezaplaceno nebo záloha</div>
+            <div class="stat-breakdown">
+                <span style="color:var(--green);font-weight:700" id="yearPaid">Zaplaceno + zálohy: 0 Kč</span>
+                <span style="color:var(--red);font-weight:700" id="yearUnpaid">Zbývá doplatit: 0 Kč</span>
             </div>
-            <div class="stat-val" id="monthUnpaidValue" style="color: var(--status-unpaid);">0 Kč</div>
-        </div>
-        <div class="stat-box" style="margin-top: 16px; border: 1px solid var(--border);">
-            <div>
-                <div class="stat-label" id="yearStatLabel">Celkové tržby za rok</div>
-                <div class="stat-sub" id="yearStatCount">0 zakázek</div>
-            </div>
-            <div class="stat-val" id="yearStatValue" style="color: var(--text-main);">0 Kč</div>
         </div>
     </div>
 </div>
 
-<div class="modal-overlay" id="backupModal" onclick="closeModalOnBg(event, 'backupModal')">
+<div class="modal-overlay" id="backupModal" onclick="closeModalOnBg(event,'backupModal')">
     <div class="modal-content">
         <div class="modal-header">
-            <h3>⚙️ Záloha a přenos dat</h3>
+            <h3>Záloha dat</h3>
             <button class="close-btn" onclick="closeModal('backupModal')">✕</button>
         </div>
-        <p style="font-size: 13px; color: var(--text-muted); margin-bottom: 14px;">
-            Všechna data jsou uložená přímo v telefonu. Doporučujeme občas stáhnout zálohu.
-        </p>
-        <button class="btn-primary" onclick="exportData()" style="margin-bottom: 14px;">⬇️ Stáhnout zálohu zakázek</button>
+        <button class="btn-primary" onclick="exportData()" style="margin-bottom:12px">⬇️ Stáhnout zálohu</button>
         <div class="form-group">
-            <label>Obnovit ze souboru zálohy (.json):</label>
+            <label>Obnovit ze souboru:</label>
             <input type="file" accept=".json" onchange="importData(event)">
         </div>
     </div>
 </div>
 
 <div class="img-viewer" id="imgViewer" onclick="this.classList.remove('active')">
-    <img id="fullImg" src="" alt="Náhled">
+    <img id="fullImg" src="">
 </div>
 
 <script>
 var currentDate = new Date();
 var selectedDateKey = "";
 var ordersData = JSON.parse(localStorage.getItem('bakeMapOrders')) || {};
+var monthsCz = new Array("Leden","Únor","Březen","Duben","Květen","Červen","Červenec","Srpen","Září","Říjen","Listopad","Prosinec");
+var cakePhotos = new Array(
+    "https://images.unsplash.com/photo-1578985545062-69928b1d9587?auto=format&fit=crop&w=900&q=80",
+    "https://images.unsplash.com/photo-1563729784474-d77dbb933a9e?auto=format&fit=crop&w=900&q=80",
+    "https://images.unsplash.com/photo-1535141192574-5d4897c12636?auto=format&fit=crop&w=900&q=80",
+    "https://images.unsplash.com/photo-1464349095431-e9a21285b5f3?auto=format&fit=crop&w=900&q=80",
+    "https://images.unsplash.com/photo-1588195538326-c5b1e9f80a1b?auto=format&fit=crop&w=900&q=80",
+    "https://images.unsplash.com/photo-1565958011703-44f9829ba187?auto=format&fit=crop&w=900&q=80",
+    "https://images.unsplash.com/photo-1571115177098-24ec42ed204d?auto=format&fit=crop&w=900&q=80",
+    "https://images.unsplash.com/photo-1621303837174-89787a7d4729?auto=format&fit=crop&w=900&q=80",
+    "https://images.unsplash.com/photo-1557925923-cd4648e211a0?auto=format&fit=crop&w=900&q=80",
+    "https://images.unsplash.com/photo-1606890737304-57a1ca8a5b62?auto=format&fit=crop&w=900&q=80",
+    "https://images.unsplash.com/photo-1542826438-bd32f43d626f?auto=format&fit=crop&w=900&q=80",
+    "https://images.unsplash.com/photo-1519869325930-281384150729?auto=format&fit=crop&w=900&q=80"
+);
 
-var monthsCz = ["Leden", "Únor", "Březen", "Duben", "Květen", "Červen", "Červenec", "Srpen", "Září", "Říjen", "Listopad", "Prosinec"];
-var daysCz = ["Neděle", "Pondělí", "Úterý", "Středa", "Čtvrtek", "Pátek", "Sobota"];
+function toggleFormDeposit() {
+    var st = document.getElementById('orderStatus').value;
+    document.getElementById('formDepositGroup').style.display = (st === 'deposit') ? 'block' : 'none';
+}
 
-var cakePhotos = [
-    "https://images.unsplash.com/photo-1578985545062-69928b1d9587?auto=format&fit=crop&w=800&q=80",
-    "https://images.unsplash.com/photo-1565958011703-44f9829ba187?auto=format&fit=crop&w=800&q=80",
-    "https://images.unsplash.com/photo-1535141192574-5d4897c12636?auto=format&fit=crop&w=800&q=80",
-    "https://images.unsplash.com/photo-1588195538326-c5b1e9f80a1b?auto=format&fit=crop&w=800&q=80",
-    "https://images.unsplash.com/photo-1563729784474-d77dbb933a9e?auto=format&fit=crop&w=800&q=80",
-    "https://images.unsplash.com/photo-1464349095431-e9a21285b5f3?auto=format&fit=crop&w=800&q=80",
-    "https://images.unsplash.com/photo-1557925923-cd4648e211a0?auto=format&fit=crop&w=800&q=80",
-    "https://images.unsplash.com/photo-1571115177098-24ec42ed204d?auto=format&fit=crop&w=800&q=80",
-    "https://images.unsplash.com/photo-1606890737304-57a1ca8a5b62?auto=format&fit=crop&w=800&q=80",
-    "https://images.unsplash.com/photo-1542826438-bd32f43d626f?auto=format&fit=crop&w=800&q=80",
-    "https://images.unsplash.com/photo-1621303837174-89787a7d4729?auto=format&fit=crop&w=800&q=80",
-    "https://images.unsplash.com/photo-1519340333755-56e9c1d04579?auto=format&fit=crop&w=800&q=80"
-];
-
-var statusInfo = {
-    unpaid: { label: "🔴 Nezaplaceno", color: "#ef4444", next: "deposit" },
-    deposit: { label: "🟠 Záloha", color: "#f59e0b", next: "paid" },
-    paid: { label: "🟢 Zaplaceno", color: "#10b981", next: "unpaid" }
-};
-
-function formatDateKey(dt) {
+function getDateKey(dt) {
     return dt.getFullYear() + "-" + String(dt.getMonth() + 1).padStart(2, '0') + "-" + String(dt.getDate()).padStart(2, '0');
 }
 
-function getSortedDayOrders(key) {
-    var list = ordersData[key] || [];
-    list.sort(function(a, b) {
-        var tA = a.time || "99:99";
-        var tB = b.time || "99:99";
-        return tA.localeCompare(tB);
+function sortOrders(list) {
+    return list.sort(function(a, b) {
+        var ta = a.time || "99:99";
+        var tb = b.time || "99:99";
+        return ta.localeCompare(tb);
     });
-    return list;
 }
 
 function renderCalendar() {
     var y = currentDate.getFullYear();
     var m = currentDate.getMonth();
-    document.getElementById('monthYearLabel').textContent = monthsCz[m] + " " + y;
-    document.getElementById('bgPhoto').style.backgroundImage = "url('" + cakePhotos[m] + "')";
-
+    document.getElementById('monthYearLabel').textContent = monthsCz.at(m) + " " + y;
+    document.getElementById('bgLayer').style.backgroundImage = "url('" + cakePhotos.at(m) + "')";
     var f = new Date(y, m, 1);
     var l = new Date(y, m + 1, 0);
     var s = f.getDay() - 1;
     if (s === -1) s = 6;
-
     var g = document.getElementById('daysGrid');
     g.innerHTML = "";
     var p = new Date(y, m, 0).getDate();
     var t = new Date();
-
     for (var i = s; i > 0; i--) {
-        g.appendChild(createDayCell(y, m - 1, p - i + 1, true, false));
+        g.appendChild(createDayCell(y, m - 1, p - i + 1, true));
     }
     for (var d = 1; d <= l.getDate(); d++) {
         var isToday = (d === t.getDate() && m === t.getMonth() && y === t.getFullYear());
@@ -538,61 +309,69 @@ function renderCalendar() {
     }
     var r = (g.children.length <= 35 ? 35 : 42) - g.children.length;
     for (var d = 1; d <= r; d++) {
-        g.appendChild(createDayCell(y, m + 1, d, true, false));
+        g.appendChild(createDayCell(y, m + 1, d, true));
     }
 }
 
-function createDayCell(y, m, d, isOther, isToday) {
+function createDayCell(y, m, d, o, t) {
     var dt = new Date(y, m, d);
-    var k = formatDateKey(dt);
+    var k = getDateKey(dt);
     var c = document.createElement('div');
-    c.className = "day-cell" + (isOther ? " other-month" : "") + (isToday ? " today" : "");
+    c.className = "day-cell" + (o ? " other-month" : "") + (t ? " today" : "");
     c.onclick = function() { openDayModal(k, dt); };
-
     var n = document.createElement('span');
     n.className = 'day-num';
     n.textContent = dt.getDate();
     c.appendChild(n);
-
-    var doList = getSortedDayOrders(k);
+    var doList = ordersData[k] || [];
     if (doList.length > 0) {
         var b = document.createElement('div');
-        b.className = 'order-badge';
-        var firstOrder = doList[0];
-        var st = firstOrder.status || "unpaid";
-        var allPaid = true;
-        for (var j = 0; j < doList.length; j++) {
-            if ((doList[j].status || "unpaid") !== "paid") allPaid = false;
-        }
-        b.style.backgroundColor = allPaid ? "#10b981" : (statusInfo[st] ? statusInfo[st].color : "#c2593f");
-        b.textContent = doList.length === 1 ? firstOrder.client : doList.length + " zakázky";
+        var st = doList.at(0).status || 'unpaid';
+        var bClass = 'badge-unpaid';
+        if (st === 'deposit') bClass = 'badge-deposit';
+        if (st === 'paid') bClass = 'badge-paid';
+        b.className = 'order-badge ' + bClass;
+        b.textContent = (doList.length === 1) ? doList.at(0).client : (doList.length + " zakázky");
         c.appendChild(b);
     }
     return c;
 }
 
-function changeMonth(delta) {
-    currentDate.setMonth(currentDate.getMonth() + delta);
-    renderCalendar();
-}
+function changeMonth(d) { currentDate.setMonth(currentDate.getMonth() + d); renderCalendar(); }
+function goToToday() { currentDate = new Date(); renderCalendar(); }
 
-function goToToday() {
-    currentDate = new Date();
-    renderCalendar();
-}
-
-function openDayModal(key, dt) {
-    selectedDateKey = key;
-    document.getElementById('selectedDateTitle').textContent = dt.getDate() + ". " + monthsCz[dt.getMonth()].toLowerCase() + " " + dt.getFullYear();
+function openDayModal(k, dt) {
+    selectedDateKey = k;
+    document.getElementById('selectedDateTitle').textContent = dt.getDate() + ". " + monthsCz.at(dt.getMonth()).toLowerCase() + " " + dt.getFullYear();
     renderOrdersList();
-    openModal('dayModal');
+    document.getElementById('dayModal').classList.add('active');
 }
 
-function toggleOrderStatus(index) {
+function getStatusHtml(st, idx) {
+    if (st === 'paid') return '<button class="status-pill pill-paid" onclick="cycleStatus(' + idx + ')">🟢 Zaplaceno</button>';
+    if (st === 'deposit') return '<button class="status-pill pill-deposit" onclick="cycleStatus(' + idx + ')">🟠 Záloha</button>';
+    return '<button class="status-pill pill-unpaid" onclick="cycleStatus(' + idx + ')">🔴 Nezaplaceno</button>';
+}
+
+function cycleStatus(idx) {
     var list = ordersData[selectedDateKey];
-    if (!list || !list[index]) return;
-    var cur = list[index].status || "unpaid";
-    list[index].status = statusInfo[cur] ? statusInfo[cur].next : "paid";
+    if (!list) return;
+    var item = list.at(idx);
+    var cur = item.status || 'unpaid';
+    if (cur === 'unpaid') item.status = 'deposit';
+    else if (cur === 'deposit') item.status = 'paid';
+    else item.status = 'unpaid';
+    localStorage.setItem('bakeMapOrders', JSON.stringify(ordersData));
+    renderOrdersList();
+    renderCalendar();
+}
+function updateDeposit(idx) {
+    var list = ordersData[selectedDateKey];
+    if (!list) return;
+    var inp = document.getElementById('depInput_' + idx);
+    if (!inp) return;
+    var val = Number(inp.value) || 0;
+    list.at(idx).deposit = val;
     localStorage.setItem('bakeMapOrders', JSON.stringify(ordersData));
     renderOrdersList();
     renderCalendar();
@@ -600,113 +379,121 @@ function toggleOrderStatus(index) {
 
 function renderOrdersList() {
     var l = document.getElementById('ordersList');
-    var doList = getSortedDayOrders(selectedDateKey);
+    var doList = ordersData[selectedDateKey] || [];
     if (doList.length === 0) {
-        l.innerHTML = '<p style="color:var(--text-muted);font-size:14px;text-align:center;padding:12px 0;">Na tento den zatím nejsou žádné zakázky.</p>';
+        l.innerHTML = '<p style="color:var(--text-muted);font-size:14px;text-align:center;padding:10px 0">Na tento den zatím nejsou žádné zakázky.</p>';
         return;
     }
+    sortOrders(doList);
     var h = "";
     for (var i = 0; i < doList.length; i++) {
-        var o = doList[i];
+        var o = doList.at(i);
         var pr = Number(o.price) || 0;
-        var stKey = o.status || "unpaid";
-        var stObj = statusInfo[stKey] || statusInfo.unpaid;
-
-        h += '<div class="order-item" style="border-left-color:' + stObj.color + ';">';
-        h += '<div class="order-top"><div class="order-client">👤 ' + escapeHtml(o.client) + '</div>';
-        h += '<button class="delete-btn" onclick="deleteOrder(' + i + ')">Smazat</button></div>';
-        if (o.time) {
-            h += '<div class="order-time">🕒 Vyzvednutí: ' + escapeHtml(o.time) + '</div>';
-        }
+        var dep = Number(o.deposit) || 0;
+        var st = o.status || 'unpaid';
+        h += '<div class="order-item st-' + st + '">';
+        h += '<div class="order-top"><div class="order-client">👤 ' + escapeHtml(o.client) + '</div><button class="delete-btn" onclick="deleteOrder(' + i + ')">Smazat</button></div>';
+        if (o.time) h += '<div class="order-time">🕒 Vyzvednutí: ' + escapeHtml(o.time) + '</div>';
         h += '<div class="order-product">🎂 ' + escapeHtml(o.product) + '</div>';
         h += '<div class="order-meta">';
-        h += '<span class="order-price">' + (pr > 0 ? '💵 ' + pr.toLocaleString('cs-CZ') + ' Kč' : 'Cena neuvedena') + '</span>';
-        h += '<button class="status-pill" style="background:' + stObj.color + ';" onclick="toggleOrderStatus(' + i + ')" title="Kliknutím změníte stav">' + stObj.label + '</button>';
+        h += (pr > 0) ? '<div class="order-price">💵 Cena: ' + pr.toLocaleString('cs-CZ') + ' Kč</div>' : '<div></div>';
+        h += getStatusHtml(st, i);
         h += '</div>';
-        if (o.notes) {
-            h += '<div class="order-notes">' + escapeHtml(o.notes) + '</div>';
+        if (st === 'deposit') {
+            var rem = Math.max(0, pr - dep);
+            h += '<div class="deposit-box">';
+            h += '<div class="deposit-row">';
+            h += '<div><div class="deposit-info">Složená záloha: ' + dep.toLocaleString('cs-CZ') + ' Kč</div>';
+            if (pr > 0) h += '<div class="deposit-sub">Zbývá doplatit: ' + rem.toLocaleString('cs-CZ') + ' Kč</div>';
+            h += '</div>';
+            h += '<div class="deposit-edit"><input type="number" id="depInput_' + i + '" value="' + dep + '" min="0" step="1"><button onclick="updateDeposit(' + i + ')">Uložit</button></div>';
+            h += '</div></div>';
         }
-        if (o.photo) {
-            h += '<img src="' + o.photo + '" class="order-img" onclick="viewImage(this.src)" alt="Předloha">';
-        }
+        if (o.notes) h += '<div class="order-notes">' + escapeHtml(o.notes) + '</div>';
+        if (o.photo) h += '<img src="' + o.photo + '" class="order-img" onclick="viewImage(this.src)">';
         h += '</div>';
     }
     l.innerHTML = h;
 }
 
 function openWeekModal() {
-    var wList = document.getElementById('weekList');
+    var wl = document.getElementById('weekList');
     var h = "";
-    var totalFound = 0;
     var base = new Date();
-
+    var found = false;
     for (var i = 0; i < 7; i++) {
-        var d = new Date(base.getFullYear(), base.getMonth(), base.getDate() + i);
-        var k = formatDateKey(d);
-        var dayOrders = getSortedDayOrders(k);
-        if (dayOrders.length > 0) {
-            totalFound += dayOrders.length;
-            var label = (i === 0 ? "Dnes – " : (i === 1 ? "Zítra – " : "")) + daysCz[d.getDay()] + " " + d.getDate() + ". " + (d.getMonth() + 1) + ".";
-            h += '<div class="week-day-group"><div class="week-day-title">' + label + '</div>';
-            for (var j = 0; j < dayOrders.length; j++) {
-                var o = dayOrders[j];
-                var stObj = statusInfo[o.status || "unpaid"] || statusInfo.unpaid;
-                h += '<div class="order-item" style="border-left-color:' + stObj.color + '; padding: 10px 12px;">';
-                h += '<div style="display:flex; justify-content:space-between; align-items:center;">';
-                h += '<strong>' + (o.time ? '🕒 ' + escapeHtml(o.time) + ' · ' : '') + escapeHtml(o.client) + '</strong>';
-                h += '<span style="font-size:11px; font-weight:700; color:' + stObj.color + ';">' + stObj.label + '</span></div>';
-                h += '<div class="order-product" style="margin-top:4px;">🎂 ' + escapeHtml(o.product) + '</div>';
-                if (o.notes) {
-                    h += '<div class="order-notes" style="margin-bottom:0;">' + escapeHtml(o.notes) + '</div>';
-                }
+        var dt = new Date(base.getFullYear(), base.getMonth(), base.getDate() + i);
+        var k = getDateKey(dt);
+        var list = ordersData[k] || [];
+        if (list.length > 0) {
+            found = true;
+            sortOrders(list);
+            var dayLabel = (i === 0 ? "Dnes – " : (i === 1 ? "Zítra – " : "")) + dt.getDate() + ". " + monthsCz.at(dt.getMonth()).toLowerCase();
+            h += '<div class="week-day-group"><div class="week-day-title">' + dayLabel + '</div>';
+            for (var j = 0; j < list.length; j++) {
+                var o = list.at(j);
+                var st = o.status || 'unpaid';
+                h += '<div class="order-item st-' + st + '" style="margin-bottom:8px;padding:10px 12px">';
+                h += '<div style="display:flex;justify-content:space-between;font-weight:700;font-size:14px"><span>' + (o.time ? '🕒 ' + escapeHtml(o.time) + ' – ' : '') + escapeHtml(o.client) + '</span><span>' + (o.price ? Number(o.price).toLocaleString('cs-CZ') + ' Kč' : '') + '</span></div>';
+                h += '<div style="color:var(--primary);font-weight:600;font-size:13px;margin-top:2px">🎂 ' + escapeHtml(o.product) + '</div>';
+                if (o.notes) h += '<div style="font-size:12px;color:var(--text-muted);margin-top:4px">' + escapeHtml(o.notes) + '</div>';
                 h += '</div>';
             }
             h += '</div>';
         }
     }
-    if (totalFound === 0) {
-        h = '<p style="color:var(--text-muted);font-size:14px;text-align:center;padding:20px 0;">Na nejbližších 7 dní nejsou naplánované žádné zakázky.</p>';
+    if (!found) {
+        h = '<p style="color:var(--text-muted);font-size:14px;text-align:center;padding:20px 0">Na nejbližších 7 dní nejsou naplánované žádné zakázky.</p>';
     }
-    wList.innerHTML = h;
-    openModal('weekModal');
+    wl.innerHTML = h;
+    document.getElementById('weekModal').classList.add('active');
 }
 
 function openStatsModal() {
     var ty = String(currentDate.getFullYear());
     var mp = ty + "-" + String(currentDate.getMonth() + 1).padStart(2, '0');
-    var ms = 0, mPaid = 0, mUnpaid = 0, mc = 0, ys = 0, yc = 0;
+    var ms = 0, mPaid = 0, mUnpaid = 0;
+    var ys = 0, yPaid = 0, yUnpaid = 0;
     var ks = Object.keys(ordersData);
-
     for (var k = 0; k < ks.length; k++) {
-        var dk = ks[k];
+        var dk = ks.at(k);
         var dl = ordersData[dk] || [];
         if (dk.startsWith(ty + "-")) {
             for (var j = 0; j < dl.length; j++) {
-                var item = dl[j];
+                var item = dl.at(j);
                 var p = Number(item.price) || 0;
+                var dep = Number(item.deposit) || 0;
+                var st = item.status || 'unpaid';
+                var paidAmt = 0;
+                var unpaidAmt = 0;
+                if (st === 'paid') {
+                    paidAmt = p;
+                } else if (st === 'deposit') {
+                    paidAmt = dep;
+                    unpaidAmt = Math.max(0, p - dep);
+                } else {
+                    unpaidAmt = p;
+                }
                 ys += p;
-                yc++;
+                yPaid += paidAmt;
+                yUnpaid += unpaidAmt;
                 if (dk.startsWith(mp)) {
                     ms += p;
-                    mc++;
-                    if ((item.status || "unpaid") === "paid") {
-                        mPaid += p;
-                    } else {
-                        mUnpaid += p;
-                    }
+                    mPaid += paidAmt;
+                    mUnpaid += unpaidAmt;
                 }
             }
         }
     }
-    document.getElementById('monthStatLabel').textContent = "Celkem: " + monthsCz[currentDate.getMonth()] + " " + ty;
-    document.getElementById('monthStatSub').textContent = "Počet zakázek v měsíci: " + mc;
+    document.getElementById('monthStatLabel').textContent = "Tržby: " + monthsCz.at(currentDate.getMonth()) + " " + ty;
     document.getElementById('monthStatValue').textContent = ms.toLocaleString('cs-CZ') + " Kč";
-    document.getElementById('monthPaidValue').textContent = mPaid.toLocaleString('cs-CZ') + " Kč";
-    document.getElementById('monthUnpaidValue').textContent = mUnpaid.toLocaleString('cs-CZ') + " Kč";
+    document.getElementById('monthPaid').textContent = "Zaplaceno + zálohy: " + mPaid.toLocaleString('cs-CZ') + " Kč";
+    document.getElementById('monthUnpaid').textContent = "Zbývá doplatit: " + mUnpaid.toLocaleString('cs-CZ') + " Kč";
     document.getElementById('yearStatLabel').textContent = "Celkové tržby za rok " + ty;
-    document.getElementById('yearStatCount').textContent = "Počet zakázek v roce: " + yc;
     document.getElementById('yearStatValue').textContent = ys.toLocaleString('cs-CZ') + " Kč";
-    openModal('statsModal');
+    document.getElementById('yearPaid').textContent = "Zaplaceno + zálohy: " + yPaid.toLocaleString('cs-CZ') + " Kč";
+    document.getElementById('yearUnpaid').textContent = "Zbývá doplatit: " + yUnpaid.toLocaleString('cs-CZ') + " Kč";
+    document.getElementById('statsModal').classList.add('active');
 }
 
 function compressImage(f) {
@@ -732,76 +519,63 @@ async function saveOrder(e) {
     e.preventDefault();
     var client = document.getElementById('clientName').value.trim();
     var product = document.getElementById('productType').value.trim();
-    var time = document.getElementById('orderTime').value;
+    var time = document.getElementById('pickupTime').value;
     var pv = document.getElementById('orderPrice').value.trim();
     var price = pv ? Number(pv) : 0;
     var status = document.getElementById('orderStatus').value;
+    var dv = document.getElementById('orderDeposit').value.trim();
+    var deposit = (status === 'deposit' && dv) ? Number(dv) : 0;
     var notes = document.getElementById('orderNotes').value.trim();
     var pIn = document.getElementById('orderPhoto');
     var photo = null;
-
-    if (pIn.files && pIn.files.length > 0) {
-        photo = await compressImage(pIn.files[0]);
+    if (pIn.files && pIn.files.item(0)) {
+        photo = await compressImage(pIn.files.item(0));
     }
-    if (!ordersData[selectedDateKey]) {
-        ordersData[selectedDateKey] = [];
-    }
+    if (!ordersData[selectedDateKey]) ordersData[selectedDateKey] = new Array();
     ordersData[selectedDateKey].push({
         client: client,
         product: product,
         time: time,
         price: price,
         status: status,
+        deposit: deposit,
         notes: notes,
         photo: photo
     });
     localStorage.setItem('bakeMapOrders', JSON.stringify(ordersData));
     document.getElementById('orderForm').reset();
+    toggleFormDeposit();
     renderOrdersList();
     renderCalendar();
 }
 
 function deleteOrder(i) {
-    if (confirm("Opravdu chcete tuto zakázku smazat?")) {
+    if (confirm("Smazat zakázku?")) {
         ordersData[selectedDateKey].splice(i, 1);
-        if (ordersData[selectedDateKey].length === 0) {
-            delete ordersData[selectedDateKey];
-        }
+        if (ordersData[selectedDateKey].length === 0) delete ordersData[selectedDateKey];
         localStorage.setItem('bakeMapOrders', JSON.stringify(ordersData));
         renderOrdersList();
         renderCalendar();
     }
 }
 
-function viewImage(src) {
-    document.getElementById('fullImg').src = src;
-    openModal('imgViewer');
-}
-
-function openModal(id) {
-    document.getElementById(id).classList.add('active');
-}
-
-function closeModal(id) {
-    document.getElementById(id).classList.remove('active');
-}
-
-function closeModalOnBg(e, id) {
-    if (e.target.id === id) closeModal(id);
-}
+function viewImage(s) { document.getElementById('fullImg').src = s; document.getElementById('imgViewer').classList.add('active'); }
+function openBackupModal() { document.getElementById('backupModal').classList.add('active'); }
+function closeModal(id) { document.getElementById(id).classList.remove('active'); }
+function closeModalOnBg(e, id) { if (e.target.id === id) closeModal(id); }
 
 function exportData() {
     var d = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(ordersData));
     var a = document.createElement('a');
     a.setAttribute("href", d);
-    a.setAttribute("download", "zaloha-peceni-" + formatDateKey(new Date()) + ".json");
+    a.setAttribute("download", "zaloha-peceni.json");
     document.body.appendChild(a);
     a.click();
     a.remove();
 }
 
 function importData(e) {
-    var f = e.target.files[0];
+    var f = e.target.files.item(0);
     if (!f) return;
     var r = new FileReader();
     r.onload = function(ev) {
@@ -809,10 +583,10 @@ function importData(e) {
             ordersData = JSON.parse(ev.target.result);
             localStorage.setItem('bakeMapOrders', JSON.stringify(ordersData));
             renderCalendar();
-            alert("Záloha byla úspěšně obnovena!");
+            alert("Obnoveno!");
             closeModal('backupModal');
         } catch (err) {
-            alert("Chyba při nahrávání souboru.");
+            alert("Chyba souboru.");
         }
     };
     r.readAsText(f);
