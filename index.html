@@ -1,446 +1,28 @@
-<!DOCTYPE html>
-<html lang="cs">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>BakeMap – Plánovač zakázek</title>
-    <style>
-        :root {
-            --bg-color: #f4f6f9;
-            --card-bg: #ffffff;
-            --primary: #d97706;
-            --primary-light: #fef3c7;
-            --text-main: #1f2937;
-            --text-muted: #6b7280;
-            --border: #e5e7eb;
-            --accent-red: #ef4444;
-        }
-
-        * {
-            box-sizing: border-box;
-            margin: 0;
-            padding: 0;
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-        }
-
-        body {
-            background-color: var(--bg-color);
-            color: var(--text-main);
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            min-height: 100vh;
-            padding: 16px;
-        }
-
-        header {
-            width: 100%;
-            max-width: 500px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 16px;
-        }
-
-        .icon-btn {
-            background: var(--card-bg);
-            border: 1px solid var(--border);
-            border-radius: 12px;
-            width: 42px;
-            height: 42px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 20px;
-            cursor: pointer;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.04);
-        }
-
-        .title-box {
-            text-align: center;
-        }
-
-        .title-box h1 {
-            color: var(--primary);
-            font-size: 24px;
-            font-weight: 800;
-        }
-
-        .title-box p {
-            color: var(--text-muted);
-            font-size: 13px;
-        }
-
-        .calendar-card {
-            background: var(--card-bg);
-            width: 100%;
-            max-width: 500px;
-            border-radius: 20px;
-            padding: 18px;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.05);
-        }
-
-        .month-nav {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 16px;
-        }
-
-        .month-nav h2 {
-            font-size: 19px;
-            font-weight: 700;
-        }
-
-        .nav-arrows button {
-            background: var(--bg-color);
-            border: none;
-            border-radius: 10px;
-            width: 36px;
-            height: 36px;
-            font-size: 16px;
-            font-weight: bold;
-            cursor: pointer;
-            margin-left: 6px;
-        }
-
-        .weekdays {
-            display: grid;
-            grid-template-columns: repeat(7, 1fr);
-            text-align: center;
-            font-size: 12px;
-            font-weight: 700;
-            color: var(--text-muted);
-            margin-bottom: 10px;
-        }
-
-        .days-grid {
-            display: grid;
-            grid-template-columns: repeat(7, 1fr);
-            gap: 6px;
-        }
-
-        .day-cell {
-            aspect-ratio: 1 / 1.15;
-            border-radius: 12px;
-            border: 1px solid transparent;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: space-between;
-            padding: 6px 2px;
-            cursor: pointer;
-            transition: 0.15s;
-            background: #fafafa;
-        }
-
-        .day-cell:hover {
-            background: var(--primary-light);
-        }
-
-        .day-cell.other-month {
-            opacity: 0.35;
-        }
-
-        .day-cell.today {
-            border: 2px solid var(--primary);
-            background: #fffbeb;
-        }
-
-        .day-num {
-            font-size: 15px;
-            font-weight: 700;
-        }
-
-        .order-badge {
-            background: var(--primary);
-            color: white;
-            font-size: 10px;
-            font-weight: 700;
-            padding: 2px 6px;
-            border-radius: 6px;
-            width: 85%;
-            text-align: center;
-            white-space: nowrap;
-            overflow: hidden;
-            text-overflow: ellipsis;
-        }
-
-        .modal-overlay {
-            position: fixed;
-            inset: 0;
-            background: rgba(0,0,0,0.5);
-            display: none;
-            align-items: flex-end;
-            justify-content: center;
-            z-index: 100;
-        }
-
-        .modal-overlay.active {
-            display: flex;
-        }
-
-        .modal-content {
-            background: var(--card-bg);
-            width: 100%;
-            max-width: 500px;
-            max-height: 90vh;
-            border-radius: 24px 24px 0 0;
-            padding: 20px;
-            overflow-y: auto;
-        }
-
-        .modal-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 16px;
-            padding-bottom: 10px;
-            border-bottom: 1px solid var(--border);
-        }
-
-        .close-btn {
-            background: var(--bg-color);
-            border: none;
-            border-radius: 50%;
-            width: 32px;
-            height: 32px;
-            font-size: 18px;
-            cursor: pointer;
-        }
-
-        .order-item {
-            background: var(--bg-color);
-            border-radius: 14px;
-            padding: 14px;
-            margin-bottom: 12px;
-            border-left: 4px solid var(--primary);
-        }
-
-        .order-top {
-            display: flex;
-            justify-content: space-between;
-            align-items: flex-start;
-            margin-bottom: 6px;
-        }
-
-        .order-client {
-            font-weight: 700;
-            font-size: 16px;
-        }
-
-        .order-product {
-            color: var(--primary);
-            font-weight: 600;
-            font-size: 14px;
-            margin-bottom: 6px;
-        }
-
-        .order-notes {
-            font-size: 13px;
-            color: var(--text-main);
-            white-space: pre-line;
-            margin-bottom: 8px;
-        }
-
-        .order-img {
-            width: 100%;
-            max-height: 220px;
-            object-fit: cover;
-            border-radius: 10px;
-            margin-top: 6px;
-            cursor: pointer;
-        }
-
-        .delete-btn {
-            background: #fee2e2;
-            color: var(--accent-red);
-            border: none;
-            padding: 4px 10px;
-            border-radius: 8px;
-            font-size: 12px;
-            font-weight: 600;
-            cursor: pointer;
-        }
-
-        .form-group {
-            margin-bottom: 12px;
-        }
-
-        .form-group label {
-            display: block;
-            font-size: 13px;
-            font-weight: 600;
-            margin-bottom: 4px;
-            color: var(--text-muted);
-        }
-
-        .form-group input, .form-group textarea {
-            width: 100%;
-            padding: 10px 12px;
-            border: 1px solid var(--border);
-            border-radius: 10px;
-            font-size: 14px;
-        }
-
-        .btn-primary {
-            background: var(--primary);
-            color: white;
-            border: none;
-            width: 100%;
-            padding: 12px;
-            border-radius: 12px;
-            font-size: 15px;
-            font-weight: 700;
-            cursor: pointer;
-            margin-top: 6px;
-        }
-
-        .section-divider {
-            margin: 18px 0 12px;
-            font-size: 15px;
-            font-weight: 700;
-        }
-
-        .img-viewer {
-            position: fixed;
-            inset: 0;
-            background: rgba(0,0,0,0.9);
-            display: none;
-            align-items: center;
-            justify-content: center;
-            z-index: 200;
-            padding: 20px;
-        }
-
-        .img-viewer.active {
-            display: flex;
-        }
-
-        .img-viewer img {
-            max-width: 100%;
-            max-height: 100%;
-            border-radius: 12px;
-        }
-    </style>
-</head>
-<body>
-
-    <header>
-        <button class="icon-btn" onclick="openBackupModal()" title="Záloha dat">⚙️</button>
-        <div class="title-box">
-            <h1>BakeMap</h1>
-            <p>Plánovač zakázek a pečení</p>
-        </div>
-        <button class="icon-btn" onclick="goToToday()" title="Dnešní den">📅</button>
-    </header>
-
-    <div class="calendar-card">
-        <div class="month-nav">
-            <h2 id="monthYearLabel">Listopad 2026</h2>
-            <div class="nav-arrows">
-                <button onclick="changeMonth(-1)">‹</button>
-                <button onclick="changeMonth(1)">›</button>
-            </div>
-        </div>
-
-        <div class="weekdays">
-            <div>PO</div><div>ÚT</div><div>ST</div><div>ČT</div><div>PÁ</div><div>SO</div><div>NE</div>
-        </div>
-
-        <div class="days-grid" id="daysGrid"></div>
-    </div>
-
-    <div class="modal-overlay" id="dayModal" onclick="closeModalOnBg(event, 'dayModal')">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h3 id="selectedDateTitle">22. listopadu 2026</h3>
-                <button class="close-btn" onclick="closeModal('dayModal')">✕</button>
-            </div>
-
-            <div id="ordersList"></div>
-
-            <div class="section-divider">➕ Přidat novou zakázku</div>
-            <form id="orderForm" onsubmit="saveOrder(event)">
-                <div class="form-group">
-                    <label>Jméno zákazníka *</label>
-                    <input type="text" id="clientName" placeholder="Např. Paní Nováková" required>
-                </div>
-                <div class="form-group">
-                    <label>Co se bude péct *</label>
-                    <input type="text" id="productType" placeholder="Např. Čokoládový dort, 30x větrník" required>
-                </div>
-                <div class="form-group">
-                    <label>Požadavky a detaily</label>
-                    <textarea id="orderNotes" rows="3" placeholder="Bez ořechů, nápis Všechno nejlepší, vyzvednutí v 15:00..."></textarea>
-                </div>
-                <div class="form-group">
-                    <label>Referenční fotka (nepovinné)</label>
-                    <input type="file" id="orderPhoto" accept="image/*">
-                </div>
-                <button type="submit" class="btn-primary">Uložit zakázku</button>
-            </form>
-        </div>
-    </div>
-
-    <div class="modal-overlay" id="backupModal" onclick="closeModalOnBg(event, 'backupModal')">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h3>Záloha a přenos dat</h3>
-                <button class="close-btn" onclick="closeModal('backupModal')">✕</button>
-            </div>
-            <p style="font-size: 13px; color: var(--text-muted); margin-bottom: 14px;">
-                Data jsou uložena přímo v tomto telefonu/prohlížeči. Pro jistotu si je můžete kdykoliv stáhnout jako soubor.
-            </p>
-            <button class="btn-primary" onclick="exportData()" style="margin-bottom: 12px;">⬇️ Stáhnout zálohu zakázek</button>
-            <div class="form-group">
-                <label>Obnovit ze souboru zálohy:</label>
-                <input type="file" accept=".json" onchange="importData(event)">
-            </div>
-        </div>
-    </div>
-
-    <div class="img-viewer" id="imgViewer" onclick="this.classList.remove('active')">
-        <img id="fullImg" src="" alt="Náhled">
-    </div>
-
-    <script>
-        let currentDate = new Date();
-        let selectedDateKey = "";
         let ordersData = JSON.parse(localStorage.getItem('bakeMapOrders')) || {};
-
-        const monthsCz = [
-            "Leden", "Únor", "Březen", "Duben", "Květen", "Červen",
-            "Červenec", "Srpen", "Září", "Říjen", "Listopad", "Prosinec"
-        ];
+        const monthsCz = ["Leden", "Únor", "Březen", "Duben", "Květen", "Červen", "Červenec", "Srpen", "Září", "Říjen", "Listopad", "Prosinec"];
 
         function renderCalendar() {
             const year = currentDate.getFullYear();
             const month = currentDate.getMonth();
-            document.getElementById('monthYearLabel').textContent = monthsCz[month] + " " + year;
+            document.getElementById('monthYearLabel').textContent = monthsCz.at(month) + " " + year;
 
             const firstDay = new Date(year, month, 1);
             const lastDay = new Date(year, month + 1, 0);
-
             let startDayOfWeek = firstDay.getDay() - 1;
             if (startDayOfWeek === -1) startDayOfWeek = 6;
 
             const daysGrid = document.getElementById('daysGrid');
             daysGrid.innerHTML = "";
-
             const prevLastDay = new Date(year, month, 0).getDate();
             const today = new Date();
 
             for (let i = startDayOfWeek; i > 0; i--) {
-                const d = prevLastDay - i + 1;
-                daysGrid.appendChild(createDayCell(year, month - 1, d, true));
+                daysGrid.appendChild(createDayCell(year, month - 1, prevLastDay - i + 1, true));
             }
-
             for (let d = 1; d <= lastDay.getDate(); d++) {
                 const isToday = d === today.getDate() && month === today.getMonth() && year === today.getFullYear();
                 daysGrid.appendChild(createDayCell(year, month, d, false, isToday));
             }
-
             const totalCells = daysGrid.children.length;
             const remaining = (totalCells <= 35 ? 35 : 42) - totalCells;
             for (let d = 1; d <= remaining; d++) {
@@ -451,7 +33,7 @@
         function createDayCell(year, month, day, isOtherMonth, isToday = false) {
             const dateObj = new Date(year, month, day);
             const key = dateObj.getFullYear() + "-" + String(dateObj.getMonth() + 1).padStart(2, '0') + "-" + String(dateObj.getDate()).padStart(2, '0');
-
+            
             const cell = document.createElement('div');
             cell.className = "day-cell" + (isOtherMonth ? " other-month" : "") + (isToday ? " today" : "");
             cell.onclick = function() { openDayModal(key, dateObj); };
@@ -465,10 +47,9 @@
             if (dayOrders.length > 0) {
                 const badge = document.createElement('div');
                 badge.className = 'order-badge';
-                badge.textContent = dayOrders.length === 1 ? dayOrders[0].client : dayOrders.length + " zakázky";
+                badge.textContent = dayOrders.length === 1 ? dayOrders.at(0).client : dayOrders.length + " zakázky";
                 cell.appendChild(badge);
             }
-
             return cell;
         }
 
@@ -484,7 +65,7 @@
 
         function openDayModal(key, dateObj) {
             selectedDateKey = key;
-            document.getElementById('selectedDateTitle').textContent = dateObj.getDate() + ". " + monthsCz[dateObj.getMonth()].toLowerCase() + " " + dateObj.getFullYear();
+            document.getElementById('selectedDateTitle').textContent = dateObj.getDate() + ". " + monthsCz.at(dateObj.getMonth()).toLowerCase() + " " + dateObj.getFullYear();
             renderOrdersList();
             document.getElementById('dayModal').classList.add('active');
         }
@@ -492,21 +73,21 @@
         function renderOrdersList() {
             const listEl = document.getElementById('ordersList');
             const dayOrders = ordersData[selectedDateKey] || [];
-
             if (dayOrders.length === 0) {
                 listEl.innerHTML = '<p style="color: var(--text-muted); font-size: 14px; text-align: center; padding: 10px 0;">Na tento den zatím nejsou žádné zakázky.</p>';
                 return;
             }
-
             let html = "";
             for (let i = 0; i < dayOrders.length; i++) {
-                const order = dayOrders[i];
+                const order = dayOrders.at(i);
+                const priceNum = Number(order.price) || 0;
                 html += '<div class="order-item">';
-                html += '<div class="order-top">';
-                html += '<div class="order-client">👤 ' + escapeHtml(order.client) + '</div>';
-                html += '<button class="delete-btn" onclick="deleteOrder(' + i + ')">Smazat</button>';
-                html += '</div>';
+                html += '<div class="order-top"><div class="order-client">👤 ' + escapeHtml(order.client) + '</div>';
+                html += '<button class="delete-btn" onclick="deleteOrder(' + i + ')">Smazat</button></div>';
                 html += '<div class="order-product">🎂 ' + escapeHtml(order.product) + '</div>';
+                if (priceNum > 0) {
+                    html += '<div class="order-price">💰 ' + priceNum.toLocaleString('cs-CZ') + ' Kč</div>';
+                }
                 if (order.notes) {
                     html += '<div class="order-notes">' + escapeHtml(order.notes) + '</div>';
                 }
@@ -518,6 +99,43 @@
             listEl.innerHTML = html;
         }
 
+        function openStatsModal() {
+            const targetYear = String(currentDate.getFullYear());
+            const targetMonthPrefix = targetYear + "-" + String(currentDate.getMonth() + 1).padStart(2, '0');
+            
+            let monthSum = 0;
+            let monthCount = 0;
+            let yearSum = 0;
+            let yearCount = 0;
+
+            const allKeys = Object.keys(ordersData);
+            for (let k = 0; k < allKeys.length; k++) {
+                const dateKey = allKeys.at(k);
+                const list = ordersData[dateKey] || [];
+                if (dateKey.startsWith(targetYear + "-")) {
+                    for (let j = 0; j < list.length; j++) {
+                        const p = Number(list.at(j).price) || 0;
+                        yearSum += p;
+                        yearCount++;
+                        if (dateKey.startsWith(targetMonthPrefix)) {
+                            monthSum += p;
+                            monthCount++;
+                        }
+                    }
+                }
+            }
+
+            document.getElementById('monthStatLabel').textContent = "Tržby: " + monthsCz.at(currentDate.getMonth()) + " " + targetYear;
+            document.getElementById('monthStatValue').textContent = monthSum.toLocaleString('cs-CZ') + " Kč";
+            document.getElementById('monthStatCount').textContent = "Počet zakázek v měsíci: " + monthCount;
+
+            document.getElementById('yearStatLabel').textContent = "Celkové tržby za rok " + targetYear;
+            document.getElementById('yearStatValue').textContent = yearSum.toLocaleString('cs-CZ') + " Kč";
+            document.getElementById('yearStatCount').textContent = "Počet zakázek v roce: " + yearCount;
+
+            document.getElementById('statsModal').classList.add('active');
+        }
+
         function compressImage(file) {
             return new Promise(function(resolve) {
                 const reader = new FileReader();
@@ -525,12 +143,10 @@
                     const img = new Image();
                     img.onload = function() {
                         const canvas = document.createElement('canvas');
-                        const maxWidth = 800;
-                        const scale = Math.min(1, maxWidth / img.width);
+                        const scale = Math.min(1, 800 / img.width);
                         canvas.width = img.width * scale;
                         canvas.height = img.height * scale;
-                        const ctx = canvas.getContext('2d');
-                        ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+                        canvas.getContext('2d').drawImage(img, 0, 0, canvas.width, canvas.height);
                         resolve(canvas.toDataURL('image/jpeg', 0.7));
                     };
                     img.src = e.target.result;
@@ -543,24 +159,18 @@
             e.preventDefault();
             const client = document.getElementById('clientName').value.trim();
             const product = document.getElementById('productType').value.trim();
+            const priceVal = document.getElementById('orderPrice').value.trim();
+            const price = priceVal ? Number(priceVal) : 0;
             const notes = document.getElementById('orderNotes').value.trim();
             const photoInput = document.getElementById('orderPhoto');
 
             let photoBase64 = null;
-            if (photoInput.files && photoInput.files[0]) {
-                photoBase64 = await compressImage(photoInput.files[0]);
+            if (photoInput.files && photoInput.files.item(0)) {
+                photoBase64 = await compressImage(photoInput.files.item(0));
             }
 
-            if (!ordersData[selectedDateKey]) {
-                ordersData[selectedDateKey] = [];
-            }
-
-            ordersData[selectedDateKey].push({
-                client: client,
-                product: product,
-                notes: notes,
-                photo: photoBase64
-            });
+            if (!ordersData[selectedDateKey]) ordersData[selectedDateKey] = [];
+            ordersData[selectedDateKey].push({ client: client, product: product, price: price, notes: notes, photo: photoBase64 });
 
             localStorage.setItem('bakeMapOrders', JSON.stringify(ordersData));
             document.getElementById('orderForm').reset();
@@ -571,9 +181,7 @@
         function deleteOrder(index) {
             if (confirm("Opravdu chcete tuto zakázku smazat?")) {
                 ordersData[selectedDateKey].splice(index, 1);
-                if (ordersData[selectedDateKey].length === 0) {
-                    delete ordersData[selectedDateKey];
-                }
+                if (ordersData[selectedDateKey].length === 0) delete ordersData[selectedDateKey];
                 localStorage.setItem('bakeMapOrders', JSON.stringify(ordersData));
                 renderOrdersList();
                 renderCalendar();
@@ -601,37 +209,37 @@
             const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(ordersData));
             const dlAnchor = document.createElement('a');
             dlAnchor.setAttribute("href", dataStr);
-            dlAnchor.setAttribute("download", "zaloha-peceni-" + new Date().toISOString().slice(0, 10) + ".json");
+            dlAnchor.setAttribute("download", "zaloha-peceni-" + new Date().toISOString().slice(0,10) + ".json");
             document.body.appendChild(dlAnchor);
             dlAnchor.click();
             dlAnchor.remove();
-   }
-
-function importData(e) {
-    const file = e.target.files.item(0);
-    if (!file) return;
-    const reader = new FileReader();
-    reader.onload = function(event) {
-        try {
-            ordersData = JSON.parse(event.target.result);
-            localStorage.setItem('bakeMapOrders', JSON.stringify(ordersData));
-            renderCalendar();
-            alert("Záloha byla úspěšně obnovena!");
-            closeModal('backupModal');
-        } catch (err) {
-            alert("Chyba při nahrávání souboru.");
         }
-    };
-    reader.readAsText(file);
-}
 
-function escapeHtml(text) {
-    const div = document.createElement('div');
-    div.textContent = text;
-    return div.innerHTML;
-}
+        function importData(e) {
+            const file = e.target.files.item(0);
+            if (!file) return;
+            const reader = new FileReader();
+            reader.onload = function(event) {
+                try {
+                    ordersData = JSON.parse(event.target.result);
+                    localStorage.setItem('bakeMapOrders', JSON.stringify(ordersData));
+                    renderCalendar();
+                    alert("Záloha byla úspěšně obnovena!");
+                    closeModal('backupModal');
+                } catch (err) {
+                    alert("Chyba při nahrávání souboru.");
+                }
+            };
+            reader.readAsText(file);
+        }
 
-renderCalendar();
-</script>
+        function escapeHtml(text) {
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }
+
+        renderCalendar();
+    </script>
 </body>
-</html>
+                    </html>
